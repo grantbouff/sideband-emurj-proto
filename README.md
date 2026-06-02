@@ -1,16 +1,60 @@
-# React + Vite
+# EMURJ FAB Prototypes
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A sandbox for exploring Floating Action Button (FAB) overlay concepts on top of saved EMURJ storefront pages. Each concept is a React component that renders interactively over a faithful static snapshot of the EMURJ site.
 
-Currently, two official plugins are available:
+## Getting started
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+Open `http://localhost:5173`. You'll land on the concept index — use the tab control to switch between Grant and Nick's concepts, then click any enabled link to open that concept's view.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## How it works
 
-## Expanding the ESLint configuration
+The app has two layers stacked on top of each other:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Background** — a saved HTML snapshot of the EMURJ site (home or product detail) rendered in a fullscreen iframe. These live in `public/pages/` with all their local assets, so they render as a faithful replica without a network connection.
+- **Overlay** — your React component rendered on top via `position: absolute`. This is where the FAB prototype UI lives.
+
+Routes follow the pattern `/concept/:user/:id/:page`, where `user` is `grant` or `nick` and `page` is either `home` or `product-detail`.
+
+## Adding a concept
+
+1. Create `src/concepts/[your-name]/concept-N.jsx` with a default export component
+2. Register it in your entry in the `CONCEPTS` object in `src/App.jsx` — set `home` and/or `productDetail` to `true` to enable those page links
+
+```jsx
+// src/concepts/grant/concept-2.jsx
+export default function Concept2({ page }) {
+  return null // your overlay UI here
+}
+```
+
+```js
+// src/App.jsx
+export const CONCEPTS = {
+  grant: [
+    ...
+    { id: 2, label: 'Concept 2', home: false, productDetail: true },
+  ],
+  ...
+}
+```
+
+## Collaboration
+
+Each person works on their own branch and pushes up to share.
+
+```bash
+git checkout -b your-branch-name
+git push -u origin your-branch-name
+```
+
+**Folder structure:**
+- Grant's concepts live in `src/concepts/grant/`
+- Nick's concepts live in `src/concepts/nick/`
+- Each person numbers their own concepts from 1 upward independently
+
+Because each person owns a separate folder, concept files never conflict. The one shared touch point is the `CONCEPTS` object in `src/App.jsx` — pull before adding a concept there to avoid a merge conflict.

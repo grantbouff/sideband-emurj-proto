@@ -6,10 +6,10 @@ const PAGE_URLS = {
   'product-detail': '/pages/product-detail.html',
 }
 
-const conceptModules = import.meta.glob('../concepts/concept-*.jsx')
+const conceptModules = import.meta.glob('../concepts/*/concept-*.jsx')
 
-function getConceptComponent(conceptId) {
-  const key = `../concepts/concept-${conceptId}.jsx`
+function getConceptComponent(user, conceptId) {
+  const key = `../concepts/${user}/concept-${conceptId}.jsx`
   if (conceptModules[key]) {
     return lazy(conceptModules[key])
   }
@@ -17,9 +17,9 @@ function getConceptComponent(conceptId) {
 }
 
 export default function ConceptPage() {
-  const { conceptId, page } = useParams()
+  const { user, conceptId, page } = useParams()
   const bgUrl = PAGE_URLS[page]
-  const ConceptOverlay = getConceptComponent(conceptId)
+  const ConceptOverlay = getConceptComponent(user, conceptId)
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
@@ -65,7 +65,7 @@ export default function ConceptPage() {
               pointerEvents: 'auto',
             }}
           >
-            No component yet — create src/concepts/concept-{conceptId}.jsx
+            No component yet — create src/concepts/{user}/concept-{conceptId}.jsx
           </div>
         )}
       </div>

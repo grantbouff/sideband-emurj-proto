@@ -1,25 +1,44 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CONCEPTS } from '../App'
 
+const USERS = ['grant', 'nick']
+
 export default function Index() {
+  const [activeUser, setActiveUser] = useState('grant')
+  const concepts = CONCEPTS[activeUser]
+
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>FAB Prototypes</h1>
       <p style={styles.subtitle}>Overlay component concepts</p>
+
+      <div style={styles.tabs}>
+        {USERS.map((user) => (
+          <button
+            key={user}
+            style={{ ...styles.tab, ...(activeUser === user ? styles.tabActive : styles.tabInactive) }}
+            onClick={() => setActiveUser(user)}
+          >
+            {user.charAt(0).toUpperCase() + user.slice(1)}
+          </button>
+        ))}
+      </div>
+
       <div style={styles.grid}>
-        {CONCEPTS.map((concept) => (
+        {concepts.map((concept) => (
           <div key={concept.id} style={styles.card}>
             <h2 style={styles.cardTitle}>{concept.label}</h2>
             <div style={styles.links}>
               {concept.home ? (
-                <Link to={`/concept/${concept.id}/home`} style={styles.linkEnabled}>
+                <Link to={`/concept/${activeUser}/${concept.id}/home`} style={styles.linkEnabled}>
                   Home
                 </Link>
               ) : (
                 <span style={styles.linkDisabled}>Home</span>
               )}
               {concept.productDetail ? (
-                <Link to={`/concept/${concept.id}/product-detail`} style={styles.linkEnabled}>
+                <Link to={`/concept/${activeUser}/${concept.id}/product-detail`} style={styles.linkEnabled}>
                   Product Detail
                 </Link>
               ) : (
@@ -48,7 +67,34 @@ const styles = {
   subtitle: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 48,
+    marginBottom: 32,
+  },
+  tabs: {
+    display: 'flex',
+    background: '#111',
+    border: '1px solid #222',
+    borderRadius: 10,
+    padding: 4,
+    gap: 4,
+    marginBottom: 24,
+    width: 'fit-content',
+  },
+  tab: {
+    padding: '7px 20px',
+    borderRadius: 7,
+    border: 'none',
+    fontSize: 14,
+    fontWeight: 500,
+    cursor: 'pointer',
+    transition: 'background 0.15s, color 0.15s',
+  },
+  tabActive: {
+    background: '#fff',
+    color: '#000',
+  },
+  tabInactive: {
+    background: 'transparent',
+    color: '#555',
   },
   grid: {
     display: 'flex',
