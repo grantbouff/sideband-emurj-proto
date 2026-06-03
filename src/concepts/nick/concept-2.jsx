@@ -1,5 +1,5 @@
 import { motion, useAnimate } from 'framer-motion'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 const EXPO_IN_OUT = [0.87, 0, 0.13, 1]
 const EXPO_OUT   = [0.16, 1, 0.3, 1]
@@ -24,7 +24,9 @@ export default function Concept2({ page }) {
 }
 
 function TriggerFAB() {
-  const [scope, animate] = useAnimate()
+  const [scope, animate]          = useAnimate()
+  const [ready, setReady]         = useState(false)
+  const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
     const run = async () => {
@@ -48,12 +50,37 @@ function TriggerFAB() {
       animate('#fab-avatar', { x: AVATAR_TRAVEL, rotate: 360 }, {
         duration: 0.84, ease: EXPO_OUT,
       })
-      animate('#fab-label', { opacity: 1, x: 0 }, {
+      await animate('#fab-label', { opacity: 1, x: 0 }, {
         duration: 0.48, ease: SNAPPY_OUT, delay: 0.1,
       })
+
+      setReady(true)
     }
     run()
   }, [])
+
+  // Scroll dismiss — drop away like gravity, mirroring the entrance
+  useEffect(() => {
+    if (!ready) return
+
+    const iframe = document.querySelector('iframe')
+    const win = iframe?.contentWindow
+    if (!win) return
+
+    const dismiss = async () => {
+      setReady(false)
+      animate('#fab-container', { opacity: 0, y: 24 }, {
+        duration: 0.32, ease: [0.4, 0, 1, 1],
+      })
+      await new Promise(r => setTimeout(r, 320))
+      setDismissed(true)
+    }
+
+    win.addEventListener('scroll', dismiss, { once: true, passive: true })
+    return () => win.removeEventListener('scroll', dismiss)
+  }, [ready])
+
+  if (dismissed) return null
 
   return (
     <div ref={scope}>
