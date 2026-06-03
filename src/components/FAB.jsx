@@ -40,6 +40,8 @@ export default function FAB({
   enterDuration  = DEFAULT_ENTER_DURATION,
   exitDuration   = DEFAULT_EXIT_DURATION,
   morphDuration  = DEFAULT_MORPH_DURATION,
+  startDelay     = 0,
+  scrollTrigger  = 0,
   shadowOpacity  = 18,
   dismissTimer,
 }) {
@@ -48,22 +50,48 @@ export default function FAB({
   const [exiting, setExiting] = useState(false)   // fade + slide (X dismiss)
   const [fadingOut, setFadingOut] = useState(false) // fade only (modal open)
   const [entered, setEntered] = useState(false)
+  // Ready to enter: immediately if scrollTrigger=0, otherwise waits for scroll threshold
+  const [scrollReady, setScrollReady] = useState(() => window.innerHeight >= scrollTrigger)
 
-  // Two RAFs ensure the browser paints the initial off-screen state before animating in
+  // Watch iframe scroll and flip scrollReady when threshold is reached
   useEffect(() => {
-    const id = requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)))
-    return () => cancelAnimationFrame(id)
-  }, [])
+    if (window.innerHeight >= scrollTrigger) { setScrollReady(true); return }
+    setScrollReady(false)
+    const iframe = document.querySelector('iframe')
+    const win = iframe?.contentWindow
+    if (!win) return
+    const check = () => {
+      if (win.scrollY + win.innerHeight >= scrollTrigger) setScrollReady(true)
+    }
+    win.addEventListener('scroll', check, { passive: true })
+    check()
+    return () => win.removeEventListener('scroll', check)
+  }, [scrollTrigger])
 
-  // Restart condense timer whenever the delay changes or phase resets to expanded
+  // Entrance runs after scroll threshold is met + startDelay elapses
   useEffect(() => {
-    if (phase !== 'expanded') return
+    if (!scrollReady) { setEntered(false); return }
+    setEntered(false)
+    let rafId
+    const timerId = setTimeout(() => {
+      rafId = requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)))
+    }, startDelay)
+    return () => {
+      clearTimeout(timerId)
+      cancelAnimationFrame(rafId)
+    }
+  }, [startDelay, scrollReady])
+
+  // Condense timer starts only after the FAB has entered — so condenseDelay is
+  // always relative to when the FAB becomes visible, not page load.
+  useEffect(() => {
+    if (phase !== 'expanded' || !entered) return
     const timer = setTimeout(
       () => setPhase(p => p === 'expanded' ? 'condensed' : p),
       condenseDelay
     )
     return () => clearTimeout(timer)
-  }, [condenseDelay, phase])
+  }, [condenseDelay, phase, entered])
 
   useEffect(() => {
     if (!dismissTimer || phase !== 'condensed') return

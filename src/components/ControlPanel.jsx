@@ -54,7 +54,11 @@ export default function ControlPanel({ config, onChange, onClose }) {
   const set = (key, val) => onChange({ ...config, [key]: val })
 
   const handleSave = async () => {
+    // Derive concept from current URL: /concept/:user/:conceptId/:page
+    const [, , user, conceptId] = window.location.pathname.split('/')
     const body = {
+      user,
+      conceptId,
       fabTheme:      config.fabTheme,
       modalTheme:    config.modalTheme,
       condenseDelay:  config.condenseDelay,
@@ -62,6 +66,8 @@ export default function ControlPanel({ config, onChange, onClose }) {
       exitDuration:   config.exitDuration,
       morphDuration:  config.morphDuration,
       shadowOpacity:  config.shadowOpacity,
+      scrollTrigger:  config.scrollTrigger,
+      startDelay:     config.startDelay,
       dismissTimer:  config.dismissTimer === 0 ? null : config.dismissTimer,
     }
     await fetch('/dev/save-config', {
@@ -113,6 +119,30 @@ export default function ControlPanel({ config, onChange, onClose }) {
       <div style={styles.divider} />
 
       {/* Timing sliders */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={styles.fieldLabel}>Scroll trigger</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <input
+              type="number"
+              min={0}
+              max={window.innerHeight}
+              value={config.scrollTrigger}
+              onChange={e => set('scrollTrigger', Math.max(0, Math.min(window.innerHeight, Number(e.target.value) || 0)))}
+              style={styles.numInput}
+            />
+            <span style={styles.value}>px</span>
+          </div>
+        </div>
+        <p style={{ ...styles.fieldLabel, marginTop: 4, marginBottom: 0, opacity: 0.4 }}>drag red line on page</p>
+      </div>
+      <SliderRow
+        label="Start delay"
+        value={config.startDelay}
+        min={0} max={5000} step={100}
+        unit="ms"
+        onChange={v => set('startDelay', v)}
+      />
       <SliderRow
         label="Condense delay"
         value={config.condenseDelay}
@@ -228,6 +258,19 @@ const styles = {
     fontFamily: 'Inter, sans-serif',
     cursor: 'pointer',
     letterSpacing: '0.02em',
+  },
+  numInput: {
+    width: 52,
+    padding: '3px 6px',
+    background: '#222',
+    border: '1px solid #333',
+    borderRadius: 5,
+    color: '#e0e0e0',
+    fontSize: 11,
+    fontFamily: 'Inter, sans-serif',
+    fontWeight: 500,
+    textAlign: 'right',
+    outline: 'none',
   },
   saveBtn: {
     width: '100%',

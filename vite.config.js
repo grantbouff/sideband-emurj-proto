@@ -16,13 +16,15 @@ function devConfigPlugin() {
         req.on('end', () => {
           try {
             const c = JSON.parse(body)
-            const file = resolve('./src/concepts/grant/concept-1.jsx')
+            const file = resolve(`./src/concepts/${c.user}/concept-${c.conceptId}.jsx`)
             let src = readFileSync(file, 'utf-8')
 
             src = src
               .replace(/const FAB_THEME\s*=\s*'[^']*'/, `const FAB_THEME          = '${c.fabTheme}'`)
               .replace(/const MODAL_THEME\s*=\s*'[^']*'/, `const MODAL_THEME        = '${c.modalTheme}'`)
               .replace(/const FAB_SHADOW_OPACITY\s*=\s*\d+/, `const FAB_SHADOW_OPACITY = ${c.shadowOpacity}`)
+              .replace(/const FAB_SCROLL_TRIGGER\s*=\s*\d+/, `const FAB_SCROLL_TRIGGER = ${c.scrollTrigger}`)
+              .replace(/const FAB_START_DELAY\s*=\s*\d+/,   `const FAB_START_DELAY    = ${c.startDelay}`)
               .replace(/const FAB_CONDENSE_DELAY\s*=\s*\d+/, `const FAB_CONDENSE_DELAY = ${c.condenseDelay}`)
               .replace(/const FAB_MORPH_DURATION\s*=\s*\d+/, `const FAB_MORPH_DURATION = ${c.morphDuration}`)
               .replace(/const FAB_ENTER_DURATION\s*=\s*\d+/, `const FAB_ENTER_DURATION = ${c.enterDuration}`)
