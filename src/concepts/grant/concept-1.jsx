@@ -1,39 +1,58 @@
 import { useState } from 'react'
 import DefaultSheet from '../../components/DefaultSheet'
+import FAB from '../../components/FAB'
+import ControlPanel from '../../components/ControlPanel'
+
+// ─── Defaults — overwritten by "Save defaults" in the control panel ───
+const FAB_THEME          = 'light'
+const MODAL_THEME        = 'lighter'
+const FAB_CONDENSE_DELAY = 3000
+const FAB_MORPH_DURATION = 400
+const FAB_ENTER_DURATION = 450
+const FAB_EXIT_DURATION  = 300
+const FAB_DISMISS_TIMER  = 6
+// ──────────────────────────────────────────────────────────────────────
 
 export default function Concept1({ page }) {
   const [open, setOpen] = useState(false)
+  const [showPanel, setShowPanel] = useState(false)
+  const [config, setConfig] = useState({
+    fabTheme:      FAB_THEME,
+    modalTheme:    MODAL_THEME,
+    condenseDelay: FAB_CONDENSE_DELAY,
+    morphDuration: FAB_MORPH_DURATION,
+    enterDuration: FAB_ENTER_DURATION,
+    exitDuration:  FAB_EXIT_DURATION,
+    dismissTimer:  FAB_DISMISS_TIMER,
+  })
 
   return (
     <>
-      <button style={styles.fab} onClick={() => setOpen(true)}>
-        Open Sheet
-      </button>
+      <FAB
+        theme={config.fabTheme}
+        condenseDelay={config.condenseDelay}
+        morphDuration={config.morphDuration}
+        enterDuration={config.enterDuration}
+        exitDuration={config.exitDuration}
+        dismissTimer={config.dismissTimer}
+        onOpen={() => setOpen(true)}
+        isOpen={open}
+        onContextMenu={() => setShowPanel(true)}
+      />
       {open && (
         <DefaultSheet
+          theme={config.modalTheme}
           onClose={() => setOpen(false)}
           onNext={() => setOpen(false)}
         />
       )}
+      {showPanel && (
+        <ControlPanel
+          config={config}
+          onChange={setConfig}
+          onClose={() => setShowPanel(false)}
+        />
+      )}
     </>
   )
-}
-
-const styles = {
-  fab: {
-    position: 'fixed',
-    bottom: 32,
-    left: '50%',
-    transform: 'translateX(-50%)',
-    background: '#fff',
-    color: '#000',
-    border: 'none',
-    borderRadius: 80,
-    padding: '14px 28px',
-    fontSize: 14,
-    fontWeight: 600,
-    cursor: 'pointer',
-    pointerEvents: 'auto',
-    boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
-  },
 }

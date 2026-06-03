@@ -1,3 +1,5 @@
+import { THEMES } from '../themes'
+
 const CloseIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
     <path d="M1 1L17 17M17 1L1 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -15,41 +17,56 @@ export default function DefaultSheet({
   body = 'Some text that can be added here... Sed posuere consectetur est.',
   chips = ['Fast', 'Faster', 'Fasterer', 'Fasterest'],
   progress = 0.4,
+  theme = 'dark',
   onClose,
   onNext,
 }) {
-  return (
-    <div style={styles.backdrop} onClick={onClose}>
-      <div style={styles.sheet} onClick={e => e.stopPropagation()}>
+  const t = THEMES[theme] ?? THEMES.dark
 
-        {/* Header */}
+  return (
+    <div style={{ ...styles.backdrop, background: t.backdrop }} onClick={onClose}>
+      <div style={{ ...styles.sheet, background: t.sheetBg }} onClick={e => e.stopPropagation()}>
+
         <div style={styles.header}>
-          <div style={styles.progressTrack}>
-            <div style={{ ...styles.progressFill, width: `${progress * 100}%` }} />
+          <div style={{ ...styles.progressTrack, background: t.progressTrack }}>
+            <div style={{ ...styles.progressFill, width: `${progress * 100}%`, background: t.progressFill }} />
           </div>
-          <button style={styles.closeButton} onClick={onClose}>
+          <button style={{ ...styles.closeButton, color: t.closeColor }} onClick={onClose}>
             <CloseIcon />
           </button>
         </div>
 
-        {/* Scrollable content */}
         <div style={styles.content}>
           <div style={styles.textContent}>
-            <p style={styles.heading}>{heading}</p>
-            <p style={styles.body}>{body}</p>
+            <p style={{ ...styles.heading, color: t.heading }}>{heading}</p>
+            <p style={{ ...styles.body, color: t.body }}>{body}</p>
           </div>
           <div style={styles.chipGrid}>
             {chips.map((label) => (
-              <button key={label} style={styles.chip}>
+              <button
+                key={label}
+                style={{
+                  ...styles.chip,
+                  background: t.chipBg,
+                  border: `1px solid ${t.chipBorder}`,
+                  color: t.chipText,
+                }}
+              >
                 {label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Footer */}
-        <div style={styles.footer}>
-          <button style={styles.nextButton} onClick={onNext}>
+        <div style={{ ...styles.footer, borderTop: `1px solid ${t.footerBorder}`, background: t.sheetBg }}>
+          <button
+            style={{
+              ...styles.nextButton,
+              background: t.nextBg,
+              color: t.nextIcon,
+            }}
+            onClick={onNext}
+          >
             <ArrowIcon />
           </button>
         </div>
@@ -63,16 +80,14 @@ const styles = {
   backdrop: {
     position: 'fixed',
     inset: 0,
-    background: 'rgba(0, 0, 0, 0.5)',
     display: 'flex',
     alignItems: 'flex-end',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     zIndex: 100,
     pointerEvents: 'auto',
-    padding: '0 0 24px',
+    padding: '0 0 24px 20px',
   },
   sheet: {
-    background: '#141414',
     borderRadius: 32,
     width: '100%',
     maxWidth: 420,
@@ -95,13 +110,11 @@ const styles = {
     right: 80,
     top: 27,
     height: 6,
-    background: '#333',
     borderRadius: 24,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    background: '#fff',
     borderRadius: 24,
   },
   closeButton: {
@@ -112,7 +125,6 @@ const styles = {
     height: 40,
     border: 'none',
     background: 'transparent',
-    color: '#fff',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -139,17 +151,17 @@ const styles = {
     fontFamily: 'Inter, sans-serif',
     fontSize: 18,
     fontWeight: 600,
-    color: '#fff',
     lineHeight: 1.4,
     width: 330,
+    margin: 0,
   },
   body: {
     fontFamily: 'Inter, sans-serif',
     fontSize: 14,
     fontWeight: 400,
-    color: '#999',
     lineHeight: 1.3,
     maxWidth: 280,
+    margin: 0,
   },
   chipGrid: {
     display: 'flex',
@@ -163,10 +175,7 @@ const styles = {
   chip: {
     width: 160,
     padding: '16px 8px',
-    background: '#1c1c1c',
-    border: '1px solid #333',
     borderRadius: 80,
-    color: '#fff',
     fontFamily: 'Inter, sans-serif',
     fontSize: 14,
     fontWeight: 700,
@@ -176,19 +185,15 @@ const styles = {
     pointerEvents: 'auto',
   },
   footer: {
-    borderTop: '1px solid #2a2a2a',
     padding: '18px 20px',
     display: 'flex',
     justifyContent: 'flex-end',
-    background: '#141414',
   },
   nextButton: {
     width: 48,
     height: 48,
-    background: '#fff',
     border: 'none',
     borderRadius: 80,
-    color: '#000',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
