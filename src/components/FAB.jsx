@@ -35,16 +35,18 @@ export default function FAB({
   onOpen,
   isOpen,
   onContextMenu,
-  theme        = 'lighter',
+  theme          = 'lighter',
   condenseDelay  = DEFAULT_CONDENSE_DELAY,
   enterDuration  = DEFAULT_ENTER_DURATION,
   exitDuration   = DEFAULT_EXIT_DURATION,
   morphDuration  = DEFAULT_MORPH_DURATION,
+  shadowOpacity  = 18,
   dismissTimer,
 }) {
   const t = THEMES[theme] ?? THEMES.lighter
   const [phase, setPhase] = useState('expanded')
-  const [exiting, setExiting] = useState(false)
+  const [exiting, setExiting] = useState(false)   // fade + slide (X dismiss)
+  const [fadingOut, setFadingOut] = useState(false) // fade only (modal open)
   const [entered, setEntered] = useState(false)
 
   // Two RAFs ensure the browser paints the initial off-screen state before animating in
@@ -84,8 +86,9 @@ export default function FAB({
   const EASE_ENTER  = 'cubic-bezier(0.16, 1, 0.3, 1)'    // expo-out: quick start, gentle land
   const EASE_EXIT   = 'cubic-bezier(0.7, 0, 1, 1)'       // ease-in: accelerates on the way out
 
-  const fadeDuration = exiting ? exitDuration : enterDuration
-  const fadeEase     = exiting ? EASE_EXIT    : EASE_ENTER
+  const leaving      = exiting || fadingOut
+  const fadeDuration = leaving     ? exitDuration : enterDuration
+  const fadeEase     = leaving     ? EASE_EXIT    : EASE_ENTER
 
   return (
     <div
@@ -95,7 +98,8 @@ export default function FAB({
         left: 20,
         width: expanded ? 314 : 52,
         height: expanded ? 68 : 52,
-        opacity: (!entered || exiting) ? 0 : 1,
+        opacity: (!entered || leaving) ? 0 : 1,
+        // Only slide for the X-dismiss — fade-only keeps the FAB→modal illusion intact
         transform: (!entered || exiting) ? 'translateX(-10%)' : 'translateX(0)',
         transition: [
           `width ${morphDuration}ms ${EASE_MORPH}`,
@@ -118,10 +122,14 @@ export default function FAB({
           border: 'none',
           overflow: 'hidden',
           cursor: 'pointer',
-          boxShadow: t.fabShadow,
+          boxShadow: `0 4px 32px rgba(0,0,0,${(shadowOpacity / 100).toFixed(2)})`,
           zIndex: 1,
         }}
-        onClick={onOpen}
+        onClick={() => {
+          setFadingOut(true)
+          setTimeout(() => setPhase('dismissed'), exitDuration)
+          onOpen()
+        }}
       >
         <p
           style={{

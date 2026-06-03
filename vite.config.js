@@ -22,6 +22,7 @@ function devConfigPlugin() {
             src = src
               .replace(/const FAB_THEME\s*=\s*'[^']*'/, `const FAB_THEME          = '${c.fabTheme}'`)
               .replace(/const MODAL_THEME\s*=\s*'[^']*'/, `const MODAL_THEME        = '${c.modalTheme}'`)
+              .replace(/const FAB_SHADOW_OPACITY\s*=\s*\d+/, `const FAB_SHADOW_OPACITY = ${c.shadowOpacity}`)
               .replace(/const FAB_CONDENSE_DELAY\s*=\s*\d+/, `const FAB_CONDENSE_DELAY = ${c.condenseDelay}`)
               .replace(/const FAB_MORPH_DURATION\s*=\s*\d+/, `const FAB_MORPH_DURATION = ${c.morphDuration}`)
               .replace(/const FAB_ENTER_DURATION\s*=\s*\d+/, `const FAB_ENTER_DURATION = ${c.enterDuration}`)

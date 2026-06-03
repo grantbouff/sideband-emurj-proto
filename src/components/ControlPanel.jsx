@@ -57,10 +57,11 @@ export default function ControlPanel({ config, onChange, onClose }) {
     const body = {
       fabTheme:      config.fabTheme,
       modalTheme:    config.modalTheme,
-      condenseDelay: config.condenseDelay,
-      enterDuration: config.enterDuration,
-      exitDuration:  config.exitDuration,
-      morphDuration: config.morphDuration,
+      condenseDelay:  config.condenseDelay,
+      enterDuration:  config.enterDuration,
+      exitDuration:   config.exitDuration,
+      morphDuration:  config.morphDuration,
+      shadowOpacity:  config.shadowOpacity,
       dismissTimer:  config.dismissTimer === 0 ? null : config.dismissTimer,
     }
     await fetch('/dev/save-config', {
@@ -96,6 +97,17 @@ export default function ControlPanel({ config, onChange, onClose }) {
         label="Modal Theme"
         value={config.modalTheme}
         onChange={v => set('modalTheme', v)}
+      />
+
+      <div style={styles.divider} />
+
+      {/* Shadow */}
+      <SliderRow
+        label="Shadow"
+        value={config.shadowOpacity}
+        min={0} max={80} step={1}
+        unit="%"
+        onChange={v => set('shadowOpacity', v)}
       />
 
       <div style={styles.divider} />
