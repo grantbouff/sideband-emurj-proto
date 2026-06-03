@@ -9,16 +9,16 @@ import ScrollTriggerLine from '../../components/ScrollTriggerLine'
 const FAB_THEME          = 'darker'
 const MODAL_THEME        = 'darker'
 const FAB_SHADOW_OPACITY = 13
-const FAB_SCROLL_TRIGGER = 1770
-const FAB_START_DELAY    = 1000
-const FAB_CONDENSE_DELAY = 4200
+const FAB_SCROLL_TRIGGER = 0
+const FAB_START_DELAY    = 1600
+const FAB_CONDENSE_DELAY = 2500
 const FAB_MORPH_DURATION = 450
-const FAB_ENTER_DURATION = 600
+const FAB_ENTER_DURATION = 1000
 const FAB_EXIT_DURATION  = 300
 const FAB_DISMISS_TIMER  = null
 // ──────────────────────────────────────────────────────────────────────
 
-export default function Concept1({ page }) {
+export default function Concept2({ page }) {
   const [open, setOpen] = useState(false)
   const [fabDismissed, setFabDismissed] = useState(false)
   const [showPanel, setShowPanel] = useState(false)
