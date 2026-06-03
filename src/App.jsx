@@ -10,7 +10,8 @@ export const CONCEPTS = {
   nick: [
     { id: 1, label: 'Concept 1', home: false, productDetail: true },
     { id: 2, label: 'Concept 2', home: false, productDetail: true },
-    { id: 3, label: 'Concept 3', home: false, productDetail: false },
+    { id: 3, label: 'Concept 3', home: false, productDetail: true },
+    { id: 4, label: 'Concept 4', home: false, productDetail: true },
   ],
 }
 

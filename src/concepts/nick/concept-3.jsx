@@ -1,24 +1,21 @@
 import { motion, useAnimate } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 
-const SNAPPY_OUT  = [0.25, 1, 0.5, 1]
 const EXPO_IN_OUT = [0.87, 0, 0.13, 1]
-const EXPO_OUT    = [0.16, 1, 0.3, 1]
-const CIRC_OUT    = [0, 0.55, 0.45, 1]
-const EASE_OUT    = [0.25, 1, 0.5, 1]
+const EXPO_OUT   = [0.16, 1, 0.3, 1]
+const SOFT_OUT   = [0.22, 1, 0.36, 1]
 
-// Equal pixel expansion on all sides (5px per side)
-const FAB_W = 314, FAB_H = 68, PX = 5
-const HOVER_SX = (FAB_W + PX * 2) / FAB_W
-const HOVER_SY = (FAB_H + PX * 2) / FAB_H
-const CTR_SX   = 1 / HOVER_SX
-const CTR_SY   = 1 / HOVER_SY
+const LINE_H     = 20
+const FAB_H      = 68
+const FAB_CLOSED = 68
+const FAB_OPEN   = 314
 
-const X_EXPANDED = 296  // left in expanded state (from Figma)
-const X_CIRCLE   = 50   // left in collapsed state — overlaps right edge of 68px circle
-const X_TOP      = 1
+// X is at x:296, y:1 within the 314×68 FAB (from Figma)
+// right edge = 296 + 20 = 316 → 2px past FAB right edge
+const DISMISS_TOP  = 1
+const DISMISS_LEFT = 296
 
-export default function Concept1({ page }) {
+export default function Concept3({ page }) {
   return (
     <div style={styles.overlay}>
       <TriggerFAB />
@@ -29,6 +26,7 @@ export default function Concept1({ page }) {
 function TriggerFAB() {
   const [scope, animate]          = useAnimate()
   const dismissRef                = useRef(null)
+  const [hovered, setHovered]     = useState(false)
   const [ready, setReady]         = useState(false)
   const [dismissed, setDismissed] = useState(false)
 
@@ -36,102 +34,40 @@ function TriggerFAB() {
     const run = async () => {
       await new Promise(r => setTimeout(r, 2000))
 
-      // Phase 1: circle scales up from bottom-left
+      // Phase 1: circle scales up from 0
       await animate(scope.current,
         { opacity: 1, scale: 1 },
         { duration: 0.8, ease: EXPO_IN_OUT }
       )
 
-      // Phase 2 + 3: expansion and text slide in together
+      // Phase 2: pill expands width
       animate(scope.current,
-        { width: FAB_W },
+        { width: FAB_OPEN },
         { duration: 0.84, ease: EXPO_OUT }
       )
-      await animate('#c1-label',
-        { opacity: 1, x: 0 },
-        { duration: 0.48, ease: SNAPPY_OUT, delay: 0.1 }
+
+      // Phase 3: text slides up from below mask
+      await animate('#c3-text',
+        { y: 0 },
+        { duration: 0.55, ease: SOFT_OUT, delay: 0.18 }
       )
 
-      // X scales in at expanded position — only after expansion is done
+      // Phase 4: dismiss button appears after text settles
       await animate(dismissRef.current,
         { opacity: 1, scale: 1 },
-        { duration: 0.22, ease: CIRC_OUT }
+        { duration: 0.22, ease: SOFT_OUT }
       )
 
-      // Switch transformOrigin to center for hover
-      scope.current.style.transformOrigin = 'center'
       setReady(true)
     }
     run()
   }, [])
 
-  // Scroll collapse — listen to the iframe's scroll
-  useEffect(() => {
-    if (!ready) return
-
-    const iframe = document.querySelector('iframe')
-    const win = iframe?.contentWindow
-    if (!win) return
-
-    const collapse = async () => {
-      setReady(false)
-
-      // X scales out + text slides out + pill contracts — all together
-      animate(dismissRef.current,
-        { scale: 0, opacity: 0 },
-        { duration: 0.2, ease: [0.4, 0, 1, 1] }
-      )
-      animate('#c1-label',
-        { opacity: 0, x: -12 },
-        { duration: 0.3, ease: CIRC_OUT }
-      )
-      await animate(scope.current,
-        { width: FAB_H, scaleX: 1, scaleY: 1 },
-        { duration: 0.5, ease: CIRC_OUT }
-      )
-
-      // Reposition X to circle, then scale back in
-      await animate(dismissRef.current,
-        { left: X_CIRCLE },
-        { duration: 0 }
-      )
-      await animate(dismissRef.current,
-        { scale: 1, opacity: 1 },
-        { duration: 0.22, ease: CIRC_OUT }
-      )
-    }
-
-    win.addEventListener('scroll', collapse, { once: true, passive: true })
-    return () => win.removeEventListener('scroll', collapse)
-  }, [ready])
-
-  const handleHoverStart = () => {
-    if (!ready) return
-    animate(scope.current,
-      { scaleX: HOVER_SX, scaleY: HOVER_SY },
-      { duration: 0.3, ease: CIRC_OUT }
-    )
-    animate('#c1-content',
-      { scaleX: CTR_SX, scaleY: CTR_SY },
-      { duration: 0.3, ease: CIRC_OUT }
-    )
-  }
-
-  const handleHoverEnd = () => {
-    animate(scope.current,
-      { scaleX: 1, scaleY: 1 },
-      { duration: 0.22, ease: EASE_OUT }
-    )
-    animate('#c1-content',
-      { scaleX: 1, scaleY: 1 },
-      { duration: 0.22, ease: EASE_OUT }
-    )
-  }
-
   const handleDismiss = (e) => {
     e.stopPropagation()
     setDismissed(true)
     setReady(false)
+    setHovered(false)
     animate(scope.current,
       { opacity: 0, scale: 0.85 },
       { duration: 0.2, ease: [0.4, 0, 1, 1] }
@@ -145,32 +81,40 @@ function TriggerFAB() {
   if (dismissed) return null
 
   return (
+    // Wrapper is position:relative so dismiss button can escape FAB overflow
     <div style={styles.wrapper}>
       <motion.div
         ref={scope}
-        onHoverStart={handleHoverStart}
-        onHoverEnd={handleHoverEnd}
+        onHoverStart={() => ready && setHovered(true)}
+        onHoverEnd={() => setHovered(false)}
         style={{
           ...styles.fab,
           opacity: 0,
           scale: 0,
-          width: FAB_H,
+          width: FAB_CLOSED,
         }}
       >
-        <motion.div id="c1-content" style={styles.content}>
-          <div style={styles.avatar}>
-            <img src="/avatar.png" alt="avatar" style={styles.avatarImg} />
-          </div>
+        {/* Avatar */}
+        <motion.div
+          style={styles.avatar}
+          animate={{ scale: hovered ? 1.15 : 1 }}
+          transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
+        >
+          <img src="/avatar.png" alt="avatar" style={styles.avatarImg} />
+        </motion.div>
+
+        {/* Text with vertical mask */}
+        <div style={styles.mask}>
           <motion.span
-            id="c1-label"
-            style={{ ...styles.label, opacity: 0, x: -12 }}
+            id="c3-text"
+            style={{ ...styles.label, y: -LINE_H }}
           >
             Do the new arrivals interest you?
           </motion.span>
-        </motion.div>
+        </div>
       </motion.div>
 
-      {/* X button — base at circle position, slides right on expansion */}
+      {/* Dismiss — sits outside FAB overflow, overlapping top-right corner */}
       <motion.button
         ref={dismissRef}
         onClick={handleDismiss}
@@ -178,13 +122,14 @@ function TriggerFAB() {
         onHoverEnd={() => animate(dismissRef.current, { scale: 1 }, { duration: 0.15 })}
         style={{
           ...styles.dismiss,
-          top: X_TOP,
-          left: X_EXPANDED,
+          top: DISMISS_TOP,
+          left: DISMISS_LEFT,
           opacity: 0,
           scale: 0,
         }}
         aria-label="Dismiss"
       >
+        {/* ic-close: 8×8 vector inside 14×14 frame inside 20×20 circle */}
         <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
           <line x1="0.5" y1="0.5" x2="7.5" y2="7.5" stroke="#000" strokeWidth="1.5" strokeLinecap="round"/>
           <line x1="7.5" y1="0.5" x2="0.5" y2="7.5" stroke="#000" strokeWidth="1.5" strokeLinecap="round"/>
@@ -202,9 +147,10 @@ const styles = {
     pointerEvents: 'auto',
     zIndex: 100,
   },
+  // Relative wrapper lets dismiss escape the FAB's overflow:hidden
   wrapper: {
     position: 'relative',
-    width: FAB_W + 22,  // enough room for X overhang
+    width: FAB_OPEN,
     height: FAB_H,
   },
   fab: {
@@ -213,6 +159,7 @@ const styles = {
     left: 0,
     display: 'flex',
     alignItems: 'center',
+    gap: 12,
     padding: 10,
     height: FAB_H,
     borderRadius: 34,
@@ -222,13 +169,6 @@ const styles = {
     flexShrink: 0,
     willChange: 'width, transform',
     transformOrigin: 'bottom left',
-  },
-  content: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    width: '100%',
-    transformOrigin: 'center',
   },
   avatar: {
     flexShrink: 0,
@@ -246,10 +186,18 @@ const styles = {
     height: '100%',
     objectFit: 'cover',
   },
+  mask: {
+    overflow: 'hidden',
+    height: LINE_H,
+    display: 'flex',
+    alignItems: 'center',
+    flex: 1,
+  },
   label: {
+    display: 'block',
     color: '#FAFAFA',
     fontSize: 14,
-    lineHeight: 1.3,
+    lineHeight: `${LINE_H}px`,
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     whiteSpace: 'nowrap',
   },
