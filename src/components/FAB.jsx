@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { THEMES } from '../themes'
 import './FAB.css'
 
-// To swap to PNG: replace this component with
+// To swap to PNG: replace EmurjLogo with:
 //   import emurjLogo from '../assets/emurj-logo.png'
 //   <img src={emurjLogo} style={{ width: 41.6, height: 6.24, display: 'block' }} />
 const EmurjLogo = ({ fill = '#000' }) => (
@@ -23,17 +24,19 @@ const XIcon = () => (
 )
 
 const DEFAULT_CONDENSE_DELAY = 4000
-const DEFAULT_ENTER_DURATION = 350
-const DEFAULT_EXIT_DURATION  = 350
+const DEFAULT_ENTER_DURATION = 450
+const DEFAULT_EXIT_DURATION  = 300
 const DEFAULT_MORPH_DURATION = 450
-// r=7.5 keeps stroke inside the 20px button with 1.5px border
 const RING_RADIUS = 7.5
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
 const RING_DELAY_S = 0.5
 
+const EASE_MORPH = [0.45, 0, 0.15, 1]
+const EASE_ENTER = [0.16, 1, 0.3, 1]
+
 export default function FAB({
   onOpen,
-  isOpen,
+  onDismiss,
   onContextMenu,
   theme          = 'lighter',
   condenseDelay  = DEFAULT_CONDENSE_DELAY,
@@ -46,14 +49,10 @@ export default function FAB({
   dismissTimer,
 }) {
   const t = THEMES[theme] ?? THEMES.lighter
-  const [phase, setPhase] = useState('expanded')
-  const [exiting, setExiting] = useState(false)   // fade + slide (X dismiss)
-  const [fadingOut, setFadingOut] = useState(false) // fade only (modal open)
-  const [entered, setEntered] = useState(false)
-  // Ready to enter: immediately if scrollTrigger=0, otherwise waits for scroll threshold
+  const [condensed, setCondensed] = useState(false)
   const [scrollReady, setScrollReady] = useState(() => window.innerHeight >= scrollTrigger)
 
-  // Watch iframe scroll and flip scrollReady when threshold is reached
+  // Watch iframe scroll — flip scrollReady when threshold enters viewport
   useEffect(() => {
     if (window.innerHeight >= scrollTrigger) { setScrollReady(true); return }
     setScrollReady(false)
@@ -68,211 +67,156 @@ export default function FAB({
     return () => win.removeEventListener('scroll', check)
   }, [scrollTrigger])
 
-  // Entrance runs after scroll threshold is met + startDelay elapses
+  // Condense fires startDelay + condenseDelay after scroll threshold is met
   useEffect(() => {
-    if (!scrollReady) { setEntered(false); return }
-    setEntered(false)
-    let rafId
-    const timerId = setTimeout(() => {
-      rafId = requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)))
-    }, startDelay)
-    return () => {
-      clearTimeout(timerId)
-      cancelAnimationFrame(rafId)
-    }
-  }, [startDelay, scrollReady])
-
-  // Condense timer starts only after the FAB has entered — so condenseDelay is
-  // always relative to when the FAB becomes visible, not page load.
-  useEffect(() => {
-    if (phase !== 'expanded' || !entered) return
-    const timer = setTimeout(
-      () => setPhase(p => p === 'expanded' ? 'condensed' : p),
-      condenseDelay
-    )
+    if (!scrollReady || condensed) return
+    const timer = setTimeout(() => setCondensed(true), startDelay + condenseDelay)
     return () => clearTimeout(timer)
-  }, [condenseDelay, phase, entered])
+  }, [scrollReady, condensed, startDelay, condenseDelay])
 
+  // Auto-dismiss after dismissTimer seconds of being condensed
   useEffect(() => {
-    if (!dismissTimer || phase !== 'condensed') return
-    const timer = setTimeout(() => {
-      setExiting(true)
-      setTimeout(() => setPhase('dismissed'), exitDuration)
-    }, (dismissTimer + RING_DELAY_S) * 1000)
+    if (!dismissTimer || !condensed) return
+    const timer = setTimeout(() => onDismiss?.(), (dismissTimer + RING_DELAY_S) * 1000)
     return () => clearTimeout(timer)
-  }, [phase, dismissTimer, exitDuration])
+  }, [condensed, dismissTimer, onDismiss])
 
-  if (phase === 'dismissed') return null
-
-  const expanded = !isOpen && phase === 'expanded' && !exiting
-
+  const expanded = !condensed
   const badgeLeft = expanded ? 304 : 46
   const badgeTop  = expanded ? -12 : -10
 
-  // Easing
-  const EASE_MORPH  = 'cubic-bezier(0.45, 0, 0.15, 1)'  // smooth in-out for shape changes
-  const EASE_ENTER  = 'cubic-bezier(0.16, 1, 0.3, 1)'    // expo-out: quick start, gentle land
-  const EASE_EXIT   = 'cubic-bezier(0.7, 0, 1, 1)'       // ease-in: accelerates on the way out
+  const morphT = { duration: morphDuration / 1000, ease: EASE_MORPH }
 
-  const leaving      = exiting || fadingOut
-  const fadeDuration = leaving     ? exitDuration : enterDuration
-  const fadeEase     = leaving     ? EASE_EXIT    : EASE_ENTER
+  const fabAnimate = {
+    width:   expanded ? 314 : 52,
+    height:  expanded ? 68  : 52,
+    opacity: scrollReady ? 1 : 0,
+    x:       scrollReady ? 0 : '-10%',
+  }
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: 32,
-        left: 20,
-        width: expanded ? 314 : 52,
-        height: expanded ? 68 : 52,
-        opacity: (!entered || leaving) ? 0 : 1,
-        // Only slide for the X-dismiss — fade-only keeps the FAB→modal illusion intact
-        transform: (!entered || exiting) ? 'translateX(-10%)' : 'translateX(0)',
-        transition: [
-          `width ${morphDuration}ms ${EASE_MORPH}`,
-          `height ${morphDuration}ms ${EASE_MORPH}`,
-          `opacity ${fadeDuration}ms ${fadeEase}`,
-          `transform ${fadeDuration}ms ${fadeEase}`,
-        ].join(', '),
-        zIndex: 50,
-        pointerEvents: 'auto',
+    <motion.div
+      style={{ position: 'fixed', bottom: 32, left: 20, zIndex: 50, pointerEvents: 'auto' }}
+      initial={{ opacity: 0, x: '-10%', width: expanded ? 314 : 52, height: expanded ? 68 : 52 }}
+      animate={fabAnimate}
+      exit={{ opacity: 0, transition: { duration: 0.15 } }}
+      transition={{
+        width:   morphT,
+        height:  morphT,
+        opacity: scrollReady ? { duration: enterDuration / 1000, delay: startDelay / 1000, ease: EASE_ENTER } : { duration: 0.15 },
+        x:       scrollReady ? { duration: enterDuration / 1000, delay: startDelay / 1000, ease: EASE_ENTER } : { duration: 0.15 },
       }}
       onContextMenu={e => { e.preventDefault(); onContextMenu?.() }}
     >
-      {/* Pill */}
-      <button
+      {/* Pill — layoutId links this surface to the modal sheet */}
+      <motion.button
+        layoutId="fab-surface"
         style={{
           position: 'absolute',
           inset: 0,
           background: t.fabBg,
-          borderRadius: 100,
           border: 'none',
           overflow: 'hidden',
           cursor: 'pointer',
           boxShadow: `0 4px 32px rgba(0,0,0,${(shadowOpacity / 100).toFixed(2)})`,
           zIndex: 1,
         }}
-        onClick={() => {
-          setFadingOut(true)
-          setTimeout(() => setPhase('dismissed'), exitDuration)
-          onOpen()
-        }}
+        animate={{ borderRadius: expanded ? 34 : 26 }}
+        onClick={onOpen}
+        transition={{ duration: morphDuration / 1000, ease: EASE_MORPH }}
       >
-        <p
-          style={{
-            position: 'absolute',
-            left: 70,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            margin: 0,
-            fontFamily: 'Inter, sans-serif',
-            fontSize: 14,
-            fontWeight: 600,
-            color: t.fabLabel,
-            whiteSpace: 'nowrap',
-            opacity: expanded ? 1 : 0,
-            transition: expanded
-              ? `opacity 0.28s ${EASE_ENTER} 0.2s`
-              : `opacity 0.12s ${EASE_EXIT}`,
-            pointerEvents: 'none',
-          }}
-        >
-          Do the new arrivals interest you?
-        </p>
-      </button>
+        <AnimatePresence>
+          {expanded && (
+            <motion.p
+              key="label"
+              style={{
+                position: 'absolute',
+                left: 70,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                margin: 0,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 14,
+                fontWeight: 600,
+                color: t.fabLabel,
+                whiteSpace: 'nowrap',
+                pointerEvents: 'none',
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1], delay: 0.18 }}
+            >
+              Do the new arrivals interest you?
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </motion.button>
 
-      {/* Logo circle */}
-      <div
+      {/* Logo circle — springs from condensed base (left:2,top:2) via x/y offset */}
+      <motion.div
         style={{
           position: 'absolute',
-          left: expanded ? 10 : 2,
-          top: expanded ? 10 : 2,
-          width: 48,
-          height: 48,
+          left: 2, top: 2,
+          width: 48, height: 48,
           borderRadius: '50%',
           background: '#FFFFFF',
           overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: [
-            `left ${morphDuration}ms ${EASE_MORPH}`,
-            `top ${morphDuration}ms ${EASE_MORPH}`,
-          ].join(', '),
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 2,
           pointerEvents: 'none',
         }}
+        animate={{ x: expanded ? 8 : 0, y: expanded ? 8 : 0 }}
+        transition={morphT}
       >
         <EmurjLogo fill="#000000" />
-      </div>
+      </motion.div>
 
-      {/* Badge wrapper — translateZ(0) creates a new containing block so the ring SVG
-          inside uses THIS element (not the FAB wrapper's transform) as its reference. */}
-      <div
+      {/* Badge wrapper — springs from condensed base (left:46,top:-10) via x/y offset.
+          transformTemplate preserves translateZ(0) for the ring's containing block. */}
+      <motion.div
         style={{
           position: 'absolute',
-          left: badgeLeft,
-          top: badgeTop,
-          width: 20,
-          height: 20,
-          transform: 'translateZ(0)',
+          left: 46, top: -10,
+          width: 20, height: 20,
           opacity: expanded ? 0 : 1,
           pointerEvents: expanded ? 'none' : 'auto',
           zIndex: expanded ? 0 : 3,
-          transition: [
-            `left ${morphDuration}ms ${EASE_MORPH}`,
-            `top ${morphDuration}ms ${EASE_MORPH}`,
-            expanded ? 'opacity 0.1s ease' : `opacity 0.2s ${EASE_ENTER} ${RING_DELAY_S - 0.1}s`,
-          ].join(', '),
+          transition: expanded
+            ? 'opacity 0.1s ease'
+            : `opacity 0.2s ease ${Math.max(0, morphDuration - 200) / 1000}s`,
         }}
+        animate={{ x: expanded ? 258 : 0, y: expanded ? -2 : 0 }}
+        transition={morphT}
+        transformTemplate={(_, generated) => `translateZ(0) ${generated}`}
       >
-        {/* Button */}
         <button
           style={{
-            position: 'absolute',
-            inset: 0,
+            position: 'absolute', inset: 0,
             background: t.badgeBg,
             border: `1.5px solid ${t.badgeBorder}`,
             borderRadius: '50%',
             cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
-          onClick={(e) => {
-            e.stopPropagation()
-            setExiting(true)
-            setTimeout(() => setPhase('dismissed'), exitDuration)
-          }}
+          onClick={e => { e.stopPropagation(); onDismiss?.() }}
         >
           <XIcon />
         </button>
 
-        {/* Countdown ring — sibling to button, same 20×20 space.
-            Uses parent's translateZ(0) as containing block, not the FAB wrapper. */}
-        {dismissTimer != null && phase === 'condensed' && (
-          <svg
-            style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
-            width="20" height="20"
-            viewBox="0 0 20 20"
-          >
+        {dismissTimer != null && condensed && (
+          <svg style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+            width="20" height="20" viewBox="0 0 20 20">
             <circle
               cx="10" cy="10" r={RING_RADIUS}
-              fill="none"
-              stroke={t.badgeIcon}
-              strokeWidth="1.5"
-              strokeDasharray={RING_CIRCUMFERENCE}
-              strokeDashoffset={0}
-              strokeLinecap="round"
-              transform="rotate(-90 10 10)"
-              style={{
-                animation: `fab-dismiss-ring ${dismissTimer}s linear ${RING_DELAY_S}s forwards`,
-              }}
+              fill="none" stroke={t.badgeIcon} strokeWidth="1.5"
+              strokeDasharray={RING_CIRCUMFERENCE} strokeDashoffset={0}
+              strokeLinecap="round" transform="rotate(-90 10 10)"
+              style={{ animation: `fab-dismiss-ring ${dismissTimer}s linear ${RING_DELAY_S}s forwards` }}
             />
           </svg>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }
