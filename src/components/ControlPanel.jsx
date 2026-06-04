@@ -27,6 +27,34 @@ function ThemePicker({ label, value, onChange }) {
   )
 }
 
+function ToggleRow({ label, value, onChange }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <span style={styles.fieldLabel}>{label}</span>
+      <button
+        onClick={() => onChange(!value)}
+        style={{
+          position: 'relative',
+          width: 36, height: 20,
+          background: value ? '#ffffff' : '#2e2e2e',
+          border: 'none', borderRadius: 10, cursor: 'pointer',
+          transition: 'background 0.2s',
+          flexShrink: 0,
+        }}
+      >
+        <div style={{
+          position: 'absolute',
+          top: 2, left: value ? 18 : 2,
+          width: 16, height: 16,
+          borderRadius: '50%',
+          background: value ? '#000000' : '#666666',
+          transition: 'left 0.2s',
+        }} />
+      </button>
+    </div>
+  )
+}
+
 function SliderRow({ label, value, min, max, step, unit, onChange }) {
   const display = unit === 's' && value === 0 ? 'off' : `${value}${unit}`
   return (
@@ -68,7 +96,8 @@ export default function ControlPanel({ config, onChange, onClose }) {
       shadowOpacity:  config.shadowOpacity,
       scrollTrigger:  config.scrollTrigger,
       startDelay:     config.startDelay,
-      dismissTimer:  config.dismissTimer === 0 ? null : config.dismissTimer,
+      dismissTimer:     config.dismissTimer === 0 ? null : config.dismissTimer,
+      showCloseButton:  config.showCloseButton ?? true,
     }
     await fetch('/dev/save-config', {
       method: 'POST',
@@ -177,6 +206,11 @@ export default function ControlPanel({ config, onChange, onClose }) {
         min={0} max={30} step={1}
         unit="s"
         onChange={v => set('dismissTimer', v === 0 ? null : v)}
+      />
+      <ToggleRow
+        label="Close button"
+        value={config.showCloseButton ?? true}
+        onChange={v => set('showCloseButton', v)}
       />
 
       <div style={{ ...styles.divider, marginBottom: 12 }} />

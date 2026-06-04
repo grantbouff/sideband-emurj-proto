@@ -30,6 +30,7 @@ function devConfigPlugin() {
               .replace(/const FAB_ENTER_DURATION\s*=\s*\d+/, `const FAB_ENTER_DURATION = ${c.enterDuration}`)
               .replace(/const FAB_EXIT_DURATION\s*=\s*\d+/,  `const FAB_EXIT_DURATION  = ${c.exitDuration}`)
               .replace(/const FAB_DISMISS_TIMER\s*=\s*(null|\d+)/, `const FAB_DISMISS_TIMER  = ${c.dismissTimer ?? 'null'}`)
+              .replace(/const FAB_SHOW_CLOSE_BTN\s*=\s*(true|false)/, `const FAB_SHOW_CLOSE_BTN = ${c.showCloseButton ?? true}`)
 
             writeFileSync(file, src)
 
