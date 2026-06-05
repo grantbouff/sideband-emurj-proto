@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter as BrowserRouter, Routes, Route } from 'react-router-dom'
 import Index from './pages/Index'
 import ConceptPage from './pages/ConceptPage'
 import './index.css'
@@ -7,6 +7,10 @@ export const CONCEPTS = {
   grant: [
     { id: 1, label: 'Concept 1', home: false, productDetail: true },
     { id: 2, label: 'Concept 2', home: true,  productDetail: false },
+    { id: 3, label: 'Concept 3', home: true,  productDetail: false },
+    { id: 4, label: 'Concept 4', home: true,  productDetail: false },
+    { id: 5, label: 'Concept 5', home: false, productDetail: true  },
+    { id: 6, label: 'Concept 6', home: true,  productDetail: true  },
   ],
   nick: [
     { id: 1, label: 'Concept 1', home: false, productDetail: true },
