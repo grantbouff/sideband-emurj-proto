@@ -47,5 +47,6 @@ function devConfigPlugin() {
 }
 
 export default defineConfig({
+  base: '/sideband-emurj-proto/',
   plugins: [react(), devConfigPlugin()],
 })
