@@ -6,6 +6,7 @@ import './index.css'
 export const CONCEPTS = {
   grant: [
     { id: 1, label: 'Concept 1', home: false, productDetail: true },
+    { id: 2, label: 'Concept 2', home: true,  productDetail: false },
   ],
   nick: [
     { id: 1, label: 'Concept 1', home: false, productDetail: true },
