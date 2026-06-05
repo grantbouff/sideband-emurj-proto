@@ -159,7 +159,7 @@ function TriggerFAB() {
       >
         <motion.div id="c1-content" style={styles.content}>
           <div style={styles.avatar}>
-            <img src="/avatar.png" alt="avatar" style={styles.avatarImg} />
+            <img src={`${import.meta.env.BASE_URL}avatar.png`} alt="avatar" style={styles.avatarImg} />
           </div>
           <motion.span
             id="c1-label"

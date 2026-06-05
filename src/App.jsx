@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter as BrowserRouter, Routes, Route } from 'react-router-dom'
 import Index from './pages/Index'
 import ConceptPage from './pages/ConceptPage'
 import './index.css'
@@ -17,6 +17,8 @@ export const CONCEPTS = {
     { id: 2, label: 'Concept 2', home: false, productDetail: true },
     { id: 3, label: 'Concept 3', home: false, productDetail: true },
     { id: 4, label: 'Concept 4', home: false, productDetail: true },
+    { id: 5, label: 'Concept 5', home: false, productDetail: true },
+    { id: 6, label: 'Concept 6', home: false, productDetail: true },
   ],
 }
 
