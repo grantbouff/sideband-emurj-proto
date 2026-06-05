@@ -1,50 +1,158 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CONCEPTS } from '../App'
 
-const USERS = ['grant', 'nick']
+const CARDS = {
+  grant: [
+    {
+      id: 1, page: 'product-detail', pageLabel: 'Product Detail',
+      description: 'Scroll-triggered pill FAB, auto-dismisses in 7 seconds with a timer underline.',
+    },
+    {
+      id: 2, page: 'home', pageLabel: 'Home',
+      description: 'Same pill on the home page, appears on load. No dismiss timer.',
+    },
+    {
+      id: 3, page: 'home', pageLabel: 'Home',
+      description: 'Circle enters from the right, slides left as the pill widens. X badge above the corner.',
+    },
+    {
+      id: 4, page: 'home', pageLabel: 'Home',
+      description: 'Circle with sonar ring and logo pulse, then expands — no lateral slide like C3.',
+    },
+    {
+      id: 5, page: 'product-detail', pageLabel: 'Product Detail',
+      description: 'Fixed bottom banner with thumbs up/down. Dismisses via a shrinking timer line.',
+    },
+    {
+      id: 6, page: 'home', pageLabel: 'Home',
+      description: 'Floating dot pulses, then widens on hover to expose a thumbs rating.',
+    },
+  ],
+  nick: [
+    {
+      id: 1, page: 'product-detail', pageLabel: 'Product Detail',
+      description: 'Circle scales from zero, expands to pill as text slides in from the right. X scales in after.',
+    },
+    {
+      id: 2, page: 'product-detail', pageLabel: 'Product Detail',
+      description: 'Avatar springs in, then rolls to the right edge as the pill expands around it.',
+    },
+    {
+      id: 3, page: 'product-detail', pageLabel: 'Product Detail',
+      description: 'Pill expands; text slides up from a clip mask rather than sliding in from the side.',
+    },
+    {
+      id: 4, page: 'product-detail', pageLabel: 'Product Detail',
+      description: 'Circle spring-rises with a sonar ring and avatar heartbeat, then expands.',
+    },
+    {
+      id: 5, page: 'product-detail', pageLabel: 'Product Detail',
+      description: 'Spring drop from above. Avatar iris-wipes in as shimmer sweeps. Drifts toward cursor.',
+    },
+    {
+      id: 6, page: 'product-detail', pageLabel: 'Product Detail',
+      description: 'Rises from below as a clip mask opens mid-flight. Avatar slot grows open separately.',
+    },
+  ],
+}
+
+const USERS = [
+  { key: 'grant', name: 'Grant' },
+  { key: 'nick',  name: 'Nick' },
+]
+
+function ConceptCard({ user, card }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <Link
+      to={`/concept/${user}/${card.id}/${card.page}`}
+      style={{ textDecoration: 'none', display: 'block' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div style={{
+        background: hovered ? '#1c1c1c' : '#141414',
+        borderRadius: 3,
+        minHeight: 200,
+        position: 'relative',
+        overflow: 'hidden',
+        transition: 'background 0.15s',
+        cursor: 'pointer',
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          background: '#1b1b1b',
+          border: '1px solid #252525',
+          borderRadius: 2,
+          padding: '2px 5px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <span style={{
+            fontSize: 11,
+            fontWeight: 400,
+            color: '#a5a5a5',
+            letterSpacing: '-0.02em',
+            fontFamily: 'Inter, sans-serif',
+          }}>
+            {card.pageLabel}
+          </span>
+        </div>
+
+        <div style={{
+          position: 'absolute',
+          bottom: 14,
+          left: 8,
+          right: 8,
+        }}>
+          <h3 style={{
+            fontSize: 16,
+            fontWeight: 600,
+            color: '#ffffff',
+            margin: '0 0 5px 0',
+            fontFamily: 'Inter, sans-serif',
+          }}>
+            Concept {card.id}
+          </h3>
+          <p style={{
+            fontSize: 12,
+            fontWeight: 300,
+            color: '#a5a5a5',
+            letterSpacing: '-0.02em',
+            lineHeight: 1.3,
+            margin: 0,
+            fontFamily: 'Inter, sans-serif',
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}>
+            {card.description}
+          </p>
+        </div>
+      </div>
+    </Link>
+  )
+}
 
 export default function Index() {
-  const [activeUser, setActiveUser] = useState('grant')
-  const concepts = CONCEPTS[activeUser]
-
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>FAB Prototypes</h1>
       <p style={styles.subtitle}>Overlay component concepts</p>
 
-      <div style={styles.tabs}>
-        {USERS.map((user) => (
-          <button
-            key={user}
-            style={{ ...styles.tab, ...(activeUser === user ? styles.tabActive : styles.tabInactive) }}
-            onClick={() => setActiveUser(user)}
-          >
-            {user.charAt(0).toUpperCase() + user.slice(1)}
-          </button>
+      <div style={styles.columns}>
+        {USERS.map(({ key, name }) => (
+          <h2 key={key} style={styles.sectionName}>{name}</h2>
         ))}
-      </div>
-
-      <div style={styles.grid}>
-        {concepts.map((concept) => (
-          <div key={concept.id} style={styles.card}>
-            <h2 style={styles.cardTitle}>{concept.label}</h2>
-            <div style={styles.links}>
-              {concept.home ? (
-                <Link to={`/concept/${activeUser}/${concept.id}/home`} style={styles.linkEnabled}>
-                  Home
-                </Link>
-              ) : (
-                <span style={styles.linkDisabled}>Home</span>
-              )}
-              {concept.productDetail ? (
-                <Link to={`/concept/${activeUser}/${concept.id}/product-detail`} style={styles.linkEnabled}>
-                  Product Detail
-                </Link>
-              ) : (
-                <span style={styles.linkDisabled}>Product Detail</span>
-              )}
-            </div>
+        {USERS.map(({ key }) => (
+          <div key={key} style={styles.grid}>
+            {CARDS[key].map(card => (
+              <ConceptCard key={card.id} user={key} card={card} />
+            ))}
           </div>
         ))}
       </div>
@@ -54,90 +162,41 @@ export default function Index() {
 
 const styles = {
   container: {
-    maxWidth: 720,
+    maxWidth: 1080,
     margin: '0 auto',
-    padding: '80px 24px',
+    padding: '80px 32px',
   },
   title: {
     fontSize: 32,
     fontWeight: 600,
     color: '#fff',
-    marginBottom: 4,
+    margin: '0 0 4px 0',
+    fontFamily: 'Inter, sans-serif',
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 32,
-  },
-  tabs: {
-    display: 'flex',
-    background: '#111',
-    border: '1px solid #222',
-    borderRadius: 10,
-    padding: 4,
-    gap: 4,
-    marginBottom: 24,
-    width: 'fit-content',
-  },
-  tab: {
-    padding: '7px 20px',
-    borderRadius: 7,
-    border: 'none',
-    fontSize: 14,
-    fontWeight: 500,
-    cursor: 'pointer',
-    transition: 'background 0.15s, color 0.15s',
-  },
-  tabActive: {
-    background: '#fff',
-    color: '#000',
-  },
-  tabInactive: {
-    background: 'transparent',
     color: '#555',
+    margin: '0 0 56px 0',
+    fontFamily: 'Inter, sans-serif',
+  },
+  columns: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    columnGap: 32,
+    rowGap: 12,
+  },
+  sectionName: {
+    fontSize: 13,
+    fontWeight: 500,
+    color: '#444',
+    margin: 0,
+    fontFamily: 'Inter, sans-serif',
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
   },
   grid: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 16,
-  },
-  card: {
-    background: '#141414',
-    border: '1px solid #222',
-    borderRadius: 12,
-    padding: '20px 24px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 500,
-    color: '#e0e0e0',
-  },
-  links: {
-    display: 'flex',
-    gap: 12,
-  },
-  linkEnabled: {
-    fontSize: 14,
-    fontWeight: 500,
-    padding: '6px 16px',
-    borderRadius: 8,
-    background: '#1a1a2e',
-    color: '#818cf8',
-    border: '1px solid #2a2a4a',
-    transition: 'background 0.15s',
-    cursor: 'pointer',
-  },
-  linkDisabled: {
-    fontSize: 14,
-    fontWeight: 500,
-    padding: '6px 16px',
-    borderRadius: 8,
-    background: '#111',
-    color: '#333',
-    border: '1px solid #1a1a1a',
-    cursor: 'default',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: 8,
   },
 }
