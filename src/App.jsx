@@ -9,6 +9,7 @@ export const CONCEPTS = {
     { id: 2, label: 'Concept 2', home: true,  productDetail: false },
     { id: 3, label: 'Concept 3', home: true,  productDetail: false },
     { id: 4, label: 'Concept 4', home: true,  productDetail: false },
+    { id: 5, label: 'Concept 5', home: false, productDetail: true  },
   ],
   nick: [
     { id: 1, label: 'Concept 1', home: false, productDetail: false },

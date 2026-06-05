@@ -3,8 +3,8 @@ import { motion } from 'framer-motion'
 import { THEMES } from '../themes'
 
 const CloseIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-    <path d="M1 1L17 17M17 1L1 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11.9998 13.4L7.0998 18.3C6.91647 18.4834 6.68314 18.575 6.3998 18.575C6.11647 18.575 5.88314 18.4834 5.6998 18.3C5.51647 18.1167 5.4248 17.8834 5.4248 17.6C5.4248 17.3167 5.51647 17.0834 5.6998 16.9L10.5998 12L5.6998 7.10005C5.51647 6.91672 5.4248 6.68338 5.4248 6.40005C5.4248 6.11672 5.51647 5.88338 5.6998 5.70005C5.88314 5.51672 6.11647 5.42505 6.3998 5.42505C6.68314 5.42505 6.91647 5.51672 7.0998 5.70005L11.9998 10.6L16.8998 5.70005C17.0831 5.51672 17.3165 5.42505 17.5998 5.42505C17.8831 5.42505 18.1165 5.51672 18.2998 5.70005C18.4831 5.88338 18.5748 6.11672 18.5748 6.40005C18.5748 6.68338 18.4831 6.91672 18.2998 7.10005L13.3998 12L18.2998 16.9C18.4831 17.0834 18.5748 17.3167 18.5748 17.6C18.5748 17.8834 18.4831 18.1167 18.2998 18.3C18.1165 18.4834 17.8831 18.575 17.5998 18.575C17.3165 18.575 17.0831 18.4834 16.8998 18.3L11.9998 13.4Z" fill="currentColor" />
   </svg>
 )
 
@@ -20,6 +20,7 @@ export default function DefaultSheet({
   chips = ['Fast', 'Faster', 'Fasterer', 'Fasterest'],
   progress = 0.4,
   theme = 'dark',
+  enterDelay = 0,
   onClose,
   onNext,
 }) {
@@ -34,23 +35,28 @@ export default function DefaultSheet({
 
   return (
     <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2, delay: enterDelay }}
       style={{ ...styles.backdrop, background: isWide ? 'transparent' : t.backdrop }}
       exit={{ opacity: 0, x: '-6%', transition: { duration: 0.25, ease: [0.7, 0, 1, 1] } }}
       onClick={onClose}
     >
-      {/* Sheet — layoutId morphs from the FAB pill surface */}
+      {/* Sheet — layoutId morphs from the FAB pill surface; slides up when entering without a match */}
       <motion.div
         layoutId="fab-surface"
+        initial={{ y: 64, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
         style={{ ...styles.sheet, background: t.sheetBg }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.5, delay: enterDelay, ease: [0.16, 1, 0.3, 1] }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Content slides up after the layoutId morph has had a moment to expand */}
+        {/* Content slides up after the sheet has settled */}
         <motion.div
           style={{ display: 'flex', flexDirection: 'column' }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0, 0.55, 0.45, 1], delay: 0.08 }}
+          transition={{ duration: 0.5, ease: [0, 0.55, 0.45, 1], delay: enterDelay + 0.12 }}
         >
           <div style={styles.header}>
             <div style={{ ...styles.progressTrack, background: t.progressTrack }}>
@@ -75,7 +81,7 @@ export default function DefaultSheet({
             </div>
           </div>
 
-          <div style={{ ...styles.footer, borderTop: `1px solid ${t.footerBorder}`, background: t.sheetBg }}>
+          <div style={{ ...styles.footer, borderTop: `1px solid ${t.chipBorder}`, background: t.sheetBg }}>
             <button style={{ ...styles.nextButton, background: t.nextBg, color: t.nextIcon }} onClick={onNext}>
               <ArrowIcon />
             </button>
@@ -100,7 +106,7 @@ const styles = {
   sheet: {
     borderRadius: 32,
     width: '100%',
-    maxWidth: 420,
+    maxWidth: 376,
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
@@ -159,7 +165,7 @@ const styles = {
     padding: '18px 20px', display: 'flex', justifyContent: 'flex-end',
   },
   nextButton: {
-    width: 48, height: 48, border: 'none', borderRadius: 80,
+    width: 85, height: 44, border: 'none', borderRadius: 80,
     cursor: 'pointer', display: 'flex', alignItems: 'center',
     justifyContent: 'center', pointerEvents: 'auto',
   },

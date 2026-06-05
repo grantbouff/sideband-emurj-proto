@@ -6,7 +6,7 @@ import ControlPanel from '../../components/ControlPanel'
 import ScrollTriggerLine from '../../components/ScrollTriggerLine'
 
 // ─── Defaults — overwritten by "Save defaults" in the control panel ───
-const FAB_THEME          = 'darker'
+const FAB_THEME          = 'lighter'
 const MODAL_THEME        = 'darker'
 const FAB_SHADOW_OPACITY = 13
 const FAB_SCROLL_TRIGGER = 500
@@ -16,7 +16,7 @@ const FAB_MORPH_DURATION = 450
 const FAB_ENTER_DURATION = 600
 const FAB_EXIT_DURATION  = 350
 const FAB_DISMISS_TIMER  = 7
-const FAB_SHOW_CLOSE_BTN = true
+const FAB_SHOW_CLOSE_BTN = false
 // ──────────────────────────────────────────────────────────────────────
 
 export default function Concept1({ page }) {
