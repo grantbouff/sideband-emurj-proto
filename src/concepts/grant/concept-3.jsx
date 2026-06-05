@@ -87,14 +87,6 @@ function Concept3FAB({
     const EXPAND_S = expandDuration / 1000
 
     const run = async () => {
-      const cx = centerX.current
-
-      // ── Set initial state ──────────────────────────────────────────
-      containerCtrl.set({ opacity: 0, y: 72, x: cx, width: 68 })
-      logoCtrl.set({ width: 64, height: 64, x: 0, y: 0 })
-      textCtrl.set({ opacity: 0 })
-      badgeCtrl.set({ opacity: 0, y: 16 })
-
       await sleep(startDelay)
       if (cancelRef.current) return
 
@@ -143,7 +135,7 @@ function Concept3FAB({
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={{ opacity: 0, y: 72, x: 246, width: 68 }}
       animate={containerCtrl}
       exit={{ opacity: 0, transition: { duration: 0.15 } }}
       style={{
@@ -163,6 +155,7 @@ function Concept3FAB({
         onClick={onOpen}
       >
         <motion.p
+          initial={{ opacity: 0 }}
           animate={textCtrl}
           style={{
             position: 'absolute', left: 70, top: '50%',
@@ -178,6 +171,7 @@ function Concept3FAB({
 
       {/* White logo circle — scales down as pill expands */}
       <motion.div
+        initial={{ width: 64, height: 64, x: 0, y: 0 }}
         animate={logoCtrl}
         style={{
           position: 'absolute', left: 2, top: 2,
@@ -193,6 +187,7 @@ function Concept3FAB({
       {/* Dismiss badge — floats above the right edge, flies in halfway through expand.
           CSS right:-10 keeps it 10 px past the pill's right edge at all widths. */}
       <motion.div
+        initial={{ opacity: 0, y: 16 }}
         animate={badgeCtrl}
         style={{
           position: 'absolute', right: -10, top: -12,
