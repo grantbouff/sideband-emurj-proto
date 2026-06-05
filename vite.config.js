@@ -41,6 +41,22 @@ function devConfigPlugin() {
               .replace(/const BANNER_DISMISS_TIMER\s*=\s*(null|\d+)/, `const BANNER_DISMISS_TIMER  = ${c.dismissTimer ?? 'null'}`)
               // Shared
               .replace(/const MODAL_THEME\s*=\s*'[^']*'/, `const MODAL_THEME        = '${c.modalTheme}'`)
+              // Concept 6: D object properties
+              .replace(/theme:\s+'[^']*',/,                  `theme:          '${c.theme}',`)
+              .replace(/question:\s+'[^']*',/,               `question:       '${c.question}',`)
+              .replace(/startDelay:\s+\d+,/,                 `startDelay:     ${c.startDelay},`)
+              .replace(/condenseDelay:\s+\d+,/,              `condenseDelay:  ${c.condenseDelay},`)
+              .replace(/condenseSpeed:\s+\d+,/,              `condenseSpeed:  ${c.condenseSpeed},`)
+              .replace(/enterDuration:\s+\d+,/,              `enterDuration:  ${c.enterDuration},`)
+              .replace(/exitDuration:\s+\d+,/,               `exitDuration:   ${c.exitDuration},`)
+              .replace(/pulseCount:\s+\d+,/,                 `pulseCount:     ${c.pulseCount},`)
+              .replace(/pulseColor:\s+'[^']*',/,             `pulseColor:     '${c.pulseColor}',`)
+              .replace(/pulseOpacity:\s+\d+,/,               `pulseOpacity:   ${c.pulseOpacity},`)
+              .replace(/disappearTimer:\s+\d+,/,             `disappearTimer: ${c.disappearTimer ?? 0},`)
+              .replace(/shadowOpacity:\s+\d+,/,              `shadowOpacity:  ${c.shadowOpacity},`)
+              .replace(/modalTheme:\s+'[^']*',/,             `modalTheme:     '${c.modalTheme}',`)
+              .replace(/posX:\s+(?:null|\d+),(?:\s*\/\/[^\n]*)?/, `posX:           ${c.posX ?? null},`)
+              .replace(/posY:\s+(?:null|\d+),(?:\s*\/\/[^\n]*)?/, `posY:           ${c.posY ?? null},`)
 
             writeFileSync(file, src)
 
