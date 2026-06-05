@@ -155,7 +155,7 @@ function TriggerFAB() {
       >
         {/* Avatar */}
         <motion.div ref={avatarRef} style={styles.avatar}>
-          <img src="/avatar.png" alt="avatar" style={styles.avatarImg} />
+          <img src={`${import.meta.env.BASE_URL}avatar.png`} alt="avatar" style={styles.avatarImg} />
         </motion.div>
 
         {/* Text — blooms from blur, never slides */}

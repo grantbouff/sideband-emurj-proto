@@ -164,7 +164,7 @@ function TriggerFAB() {
           style={styles.avatar}
           initial={{ clipPath: 'circle(0% at 50% 50%)' }}
         >
-          <img src="/avatar.png" alt="avatar" style={styles.avatarImg} />
+          <img src={`${import.meta.env.BASE_URL}avatar.png`} alt="avatar" style={styles.avatarImg} />
         </motion.div>
 
         {/* Text — rises up into place */}

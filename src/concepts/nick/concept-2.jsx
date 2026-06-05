@@ -101,7 +101,7 @@ function TriggerFAB() {
           style={styles.avatar}
           initial={{ scale: 0 }}
         >
-          <img src="/avatar.png" alt="avatar" style={styles.avatarImg} />
+          <img src={`${import.meta.env.BASE_URL}avatar.png`} alt="avatar" style={styles.avatarImg} />
         </motion.div>
 
       </motion.div>
