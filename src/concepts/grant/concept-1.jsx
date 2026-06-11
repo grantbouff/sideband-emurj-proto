@@ -6,16 +6,17 @@ import ControlPanel from '../../components/ControlPanel'
 import ScrollTriggerLine from '../../components/ScrollTriggerLine'
 
 // ─── Defaults — overwritten by "Save defaults" in the control panel ───
-const FAB_THEME          = 'darker'
+const FAB_THEME          = 'lighter'
 const MODAL_THEME        = 'darker'
 const FAB_SHADOW_OPACITY = 13
-const FAB_SCROLL_TRIGGER = 1770
+const FAB_SCROLL_TRIGGER = 500
 const FAB_START_DELAY    = 1000
-const FAB_CONDENSE_DELAY = 4200
+const FAB_CONDENSE_DELAY = 3300
 const FAB_MORPH_DURATION = 450
 const FAB_ENTER_DURATION = 600
-const FAB_EXIT_DURATION  = 300
-const FAB_DISMISS_TIMER  = null
+const FAB_EXIT_DURATION  = 350
+const FAB_DISMISS_TIMER  = 7
+const FAB_SHOW_CLOSE_BTN = false
 // ──────────────────────────────────────────────────────────────────────
 
 export default function Concept1({ page }) {
@@ -32,7 +33,8 @@ export default function Concept1({ page }) {
     morphDuration: FAB_MORPH_DURATION,
     enterDuration: FAB_ENTER_DURATION,
     exitDuration:  FAB_EXIT_DURATION,
-    dismissTimer:  FAB_DISMISS_TIMER,
+    dismissTimer:    FAB_DISMISS_TIMER,
+    showCloseButton: FAB_SHOW_CLOSE_BTN,
   })
 
   return (
@@ -50,6 +52,7 @@ export default function Concept1({ page }) {
             enterDuration={config.enterDuration}
             exitDuration={config.exitDuration}
             dismissTimer={config.dismissTimer}
+            showCloseButton={config.showCloseButton}
             onOpen={() => setOpen(true)}
             onDismiss={() => setFabDismissed(true)}
             onContextMenu={() => setShowPanel(true)}

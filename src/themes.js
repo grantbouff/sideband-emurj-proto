@@ -31,7 +31,7 @@ export const THEMES = {
     backdrop:     'rgba(0,0,0,0.4)',
   },
   light: {
-    fabBg:        '#FFFFFF',
+    fabBg:        '#FAFAFA',
     fabLabel:     '#080808',
     fabShadow:    '0 4px 32px rgba(0,0,0,0.18)',
     badgeBg:      '#1F1F1F',

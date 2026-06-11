@@ -1,9 +1,10 @@
 import { useParams } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 
+const BASE = import.meta.env.BASE_URL
 const PAGE_URLS = {
-  home: '/pages/home.html',
-  'product-detail': '/pages/product-detail.html',
+  home: `${BASE}pages/home.html`,
+  'product-detail': `${BASE}pages/product-detail.html`,
 }
 
 const conceptModules = import.meta.glob('../concepts/*/concept-*.jsx')

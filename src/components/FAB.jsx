@@ -34,19 +34,26 @@ const RING_DELAY_S = 0.5
 const EASE_MORPH = [0.45, 0, 0.15, 1]
 const EASE_ENTER = [0.16, 1, 0.3, 1]
 
+// GAP = 2 × stroke gives: inner_edge_distance = 1 × stroke from FAB edge.
+const OUTER_RING_STROKE = 2.5
+const OUTER_RING_GAP    = OUTER_RING_STROKE * 2
+const CONDENSED_SIZE    = 52
+const OUTER_RING_SIZE   = CONDENSED_SIZE + OUTER_RING_GAP * 2
+
 export default function FAB({
   onOpen,
   onDismiss,
   onContextMenu,
-  theme          = 'lighter',
-  condenseDelay  = DEFAULT_CONDENSE_DELAY,
-  enterDuration  = DEFAULT_ENTER_DURATION,
-  exitDuration   = DEFAULT_EXIT_DURATION,
-  morphDuration  = DEFAULT_MORPH_DURATION,
-  startDelay     = 0,
-  scrollTrigger  = 0,
-  shadowOpacity  = 18,
+  theme            = 'lighter',
+  condenseDelay    = DEFAULT_CONDENSE_DELAY,
+  enterDuration    = DEFAULT_ENTER_DURATION,
+  exitDuration     = DEFAULT_EXIT_DURATION,
+  morphDuration    = DEFAULT_MORPH_DURATION,
+  startDelay       = 0,
+  scrollTrigger    = 0,
+  shadowOpacity    = 18,
   dismissTimer,
+  showCloseButton  = true,
 }) {
   const t = THEMES[theme] ?? THEMES.lighter
   const [condensed, setCondensed] = useState(false)
@@ -81,6 +88,22 @@ export default function FAB({
     return () => clearTimeout(timer)
   }, [condensed, dismissTimer, onDismiss])
 
+  // Track when the entrance animation has completed so x can switch to morphT
+  const [entered, setEntered] = useState(false)
+  useEffect(() => {
+    if (!scrollReady) return
+    const t = setTimeout(() => setEntered(true), startDelay + enterDuration)
+    return () => clearTimeout(t)
+  }, [scrollReady, startDelay, enterDuration])
+
+  // Delay the outer ring until the morph animation has finished
+  const [showRing, setShowRing] = useState(false)
+  useEffect(() => {
+    if (!condensed) { setShowRing(false); return }
+    const t = setTimeout(() => setShowRing(true), 100)
+    return () => clearTimeout(t)
+  }, [condensed, morphDuration])
+
   const expanded = !condensed
   const badgeLeft = expanded ? 304 : 46
   const badgeTop  = expanded ? -12 : -10
@@ -91,7 +114,8 @@ export default function FAB({
     width:   expanded ? 314 : 52,
     height:  expanded ? 68  : 52,
     opacity: scrollReady ? 1 : 0,
-    x:       scrollReady ? 0 : '-10%',
+    x:       !scrollReady ? '-10%' : condensed ? 0 : 10,
+    y:       condensed ? -8 : 0,
   }
 
   return (
@@ -103,11 +127,58 @@ export default function FAB({
       transition={{
         width:   morphT,
         height:  morphT,
+        y:       morphT,
         opacity: scrollReady ? { duration: enterDuration / 1000, delay: startDelay / 1000, ease: EASE_ENTER } : { duration: 0.15 },
-        x:       scrollReady ? { duration: enterDuration / 1000, delay: startDelay / 1000, ease: EASE_ENTER } : { duration: 0.15 },
+        x:       !scrollReady ? { duration: 0.15 } : !entered ? { duration: enterDuration / 1000, delay: startDelay / 1000, ease: EASE_ENTER } : morphT,
       }}
       onContextMenu={e => { e.preventDefault(); onContextMenu?.() }}
     >
+      {/* Outer timer ring — expands from behind when condensed, replaces close button */}
+      <AnimatePresence>
+        {!showCloseButton && showRing && dismissTimer != null && (
+          <motion.div
+            key="outer-ring"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+            transition={{ duration: morphDuration / 1000, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              position: 'absolute',
+              left: -OUTER_RING_GAP,
+              top: -OUTER_RING_GAP,
+              width: OUTER_RING_SIZE,
+              height: OUTER_RING_SIZE,
+              pointerEvents: 'none',
+              zIndex: 0,
+            }}
+          >
+            {/* scaleX(-1) mirrors the circle so pathLength 1→0 drains clockwise */}
+            <svg
+              width={OUTER_RING_SIZE}
+              height={OUTER_RING_SIZE}
+              viewBox={`0 0 ${OUTER_RING_SIZE} ${OUTER_RING_SIZE}`}
+              style={{ transform: 'scaleX(-1)' }}
+            >
+              <motion.circle
+                cx={OUTER_RING_SIZE / 2}
+                cy={OUTER_RING_SIZE / 2}
+                r={OUTER_RING_SIZE / 2 - OUTER_RING_STROKE / 2}
+                fill="none"
+                stroke="#000000"
+                strokeWidth={OUTER_RING_STROKE}
+                strokeLinecap="round"
+                transform={`rotate(-90 ${OUTER_RING_SIZE / 2} ${OUTER_RING_SIZE / 2})`}
+                initial={{ pathLength: 1 }}
+                animate={dismissTimer != null ? { pathLength: 0 } : { pathLength: 1 }}
+                transition={dismissTimer != null
+                  ? { duration: dismissTimer, delay: RING_DELAY_S, ease: 'linear' }
+                  : { duration: 0 }}
+              />
+            </svg>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Pill — layoutId links this surface to the modal sheet */}
       <motion.button
         layoutId="fab-surface"
@@ -172,9 +243,8 @@ export default function FAB({
         <EmurjLogo fill="#000000" />
       </motion.div>
 
-      {/* Badge wrapper — springs from condensed base (left:46,top:-10) via x/y offset.
-          transformTemplate preserves translateZ(0) for the ring's containing block. */}
-      <motion.div
+      {/* Badge — only rendered when showCloseButton is true */}
+      {showCloseButton && <motion.div
         style={{
           position: 'absolute',
           left: 46, top: -10,
@@ -204,19 +274,7 @@ export default function FAB({
           <XIcon />
         </button>
 
-        {dismissTimer != null && condensed && (
-          <svg style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
-            width="20" height="20" viewBox="0 0 20 20">
-            <circle
-              cx="10" cy="10" r={RING_RADIUS}
-              fill="none" stroke={t.badgeIcon} strokeWidth="1.5"
-              strokeDasharray={RING_CIRCUMFERENCE} strokeDashoffset={0}
-              strokeLinecap="round" transform="rotate(-90 10 10)"
-              style={{ animation: `fab-dismiss-ring ${dismissTimer}s linear ${RING_DELAY_S}s forwards` }}
-            />
-          </svg>
-        )}
-      </motion.div>
+      </motion.div>}
     </motion.div>
   )
 }

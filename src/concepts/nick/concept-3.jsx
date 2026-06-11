@@ -100,7 +100,7 @@ function TriggerFAB() {
           animate={{ scale: hovered ? 1.15 : 1 }}
           transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
         >
-          <img src="/avatar.png" alt="avatar" style={styles.avatarImg} />
+          <img src={`${import.meta.env.BASE_URL}avatar.png`} alt="avatar" style={styles.avatarImg} />
         </motion.div>
 
         {/* Text with vertical mask */}
