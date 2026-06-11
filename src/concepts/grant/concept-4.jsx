@@ -169,6 +169,7 @@ function Concept4FAB({
     >
       {/* Ring — radiates out ahead of the pill, then fades away */}
       <motion.div
+        initial={{ scale: 0, opacity: 1 }}
         animate={ringCtrl}
         style={{
           position: 'absolute', inset: 0,
@@ -180,6 +181,7 @@ function Concept4FAB({
 
       {/* Black pill — scales in during radiate, expands via container width after */}
       <motion.button
+        initial={{ scale: 0 }}
         animate={pillScaleCtrl}
         style={{
           position: 'absolute', inset: 0,
@@ -205,6 +207,7 @@ function Concept4FAB({
 
       {/* Logo circle — scales in last, then shrinks slightly during expand */}
       <motion.div
+        initial={{ scale: 0 }}
         animate={logoCtrl}
         style={{
           position: 'absolute', left: 2, top: 2,

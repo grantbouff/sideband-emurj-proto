@@ -13,7 +13,7 @@ const BANNER_SCROLL_TRIGGER = 0
 const BANNER_START_DELAY    = 700
 const BANNER_ENTER_DURATION = 800
 const BANNER_EXIT_DURATION  = 550
-const BANNER_DISMISS_TIMER  = 3
+const BANNER_DISMISS_TIMER  = 10
 // ──────────────────────────────────────────────────────────────────────
 
 const EASE_IO  = [0.87, 0, 0.13, 1]

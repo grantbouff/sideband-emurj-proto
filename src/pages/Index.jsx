@@ -12,15 +12,15 @@ const CARDS = {
       description: 'Same pill on the home page, appears on load. No dismiss timer.',
     },
     {
-      id: 3, page: 'home', pageLabel: 'Home',
+      id: 3, page: 'home', pageLabel: 'Home', favorite: true,
       description: 'Circle enters from the right, slides left as the pill widens. X badge above the corner.',
     },
     {
-      id: 4, page: 'home', pageLabel: 'Home',
+      id: 4, page: 'home', pageLabel: 'Home', favorite: true,
       description: 'Circle with sonar ring and logo pulse, then expands — no lateral slide like C3.',
     },
     {
-      id: 5, page: 'product-detail', pageLabel: 'Product Detail',
+      id: 5, page: 'product-detail', pageLabel: 'Product Detail', favorite: true,
       description: 'Fixed bottom banner with thumbs up/down. Dismisses via a shrinking timer line.',
     },
     {
