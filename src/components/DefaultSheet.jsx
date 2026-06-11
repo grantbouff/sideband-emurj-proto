@@ -21,6 +21,7 @@ export default function DefaultSheet({
   progress = 0.4,
   theme = 'dark',
   enterDelay = 0,
+  slideIn = true,
   onClose,
   onNext,
 }) {
@@ -45,7 +46,7 @@ export default function DefaultSheet({
       {/* Sheet — layoutId morphs from the FAB pill surface; slides up when entering without a match */}
       <motion.div
         layoutId="fab-surface"
-        initial={{ y: 64, opacity: 0 }}
+        initial={slideIn ? { y: 64, opacity: 0 } : { opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         style={{ ...styles.sheet, background: t.sheetBg }}
         transition={{ duration: 0.5, delay: enterDelay, ease: [0.16, 1, 0.3, 1] }}

@@ -27,6 +27,10 @@ const CARDS = {
       id: 6, page: 'home', pageLabel: 'Home',
       description: 'Floating dot pulses, then widens on hover to expose a thumbs rating.',
     },
+    {
+      id: 7, page: 'home', pageLabel: 'Home',
+      description: 'Sonar-ring FAB with thumbs icon, expands to show a rating prompt, morphs into a feedback card.',
+    },
   ],
   nick: [
     {
@@ -198,5 +202,6 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: 'repeat(2, 1fr)',
     gap: 8,
+    alignSelf: 'start',
   },
 }
