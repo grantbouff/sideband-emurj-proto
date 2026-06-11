@@ -38,7 +38,7 @@ const CARDS = {
       description: 'Circle scales from zero, expands to pill as text slides in from the right. X scales in after.',
     },
     {
-      id: 2, page: 'product-detail', pageLabel: 'Product Detail',
+      id: 2, page: 'product-detail', pageLabel: 'Product Detail', favorite: true,
       description: 'Avatar springs in, then rolls to the right edge as the pill expands around it.',
     },
     {
@@ -46,7 +46,7 @@ const CARDS = {
       description: 'Pill expands; text slides up from a clip mask rather than sliding in from the side.',
     },
     {
-      id: 4, page: 'product-detail', pageLabel: 'Product Detail',
+      id: 4, page: 'product-detail', pageLabel: 'Product Detail', favorite: true,
       description: 'Circle spring-rises with a sonar ring and avatar heartbeat, then expands.',
     },
     {
@@ -54,7 +54,7 @@ const CARDS = {
       description: 'Spring drop from above. Avatar iris-wipes in as shimmer sweeps. Drifts toward cursor.',
     },
     {
-      id: 6, page: 'product-detail', pageLabel: 'Product Detail',
+      id: 6, page: 'product-detail', pageLabel: 'Product Detail', favorite: true,
       description: 'Rises from below as a clip mask opens mid-flight. Avatar slot grows open separately.',
     },
   ],
@@ -83,6 +83,14 @@ function ConceptCard({ user, card }) {
         transition: 'background 0.15s',
         cursor: 'pointer',
       }}>
+        {card.favorite && (
+          <div style={{ position: 'absolute', top: 9, left: 9 }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="#f5c518">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+          </div>
+        )}
+
         <div style={{
           position: 'absolute',
           top: 8,
