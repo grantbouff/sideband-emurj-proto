@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import DefaultSheet from '../../components/DefaultSheet'
-import ControlPanel from '../../components/ControlPanel'
-import ScrollTriggerLine from '../../components/ScrollTriggerLine'
-import { THEMES } from '../../themes'
+import DefaultSheet from '../../../components/DefaultSheet'
+import ControlPanel from '../../../components/ControlPanel'
+import ScrollTriggerLine from '../../../components/ScrollTriggerLine'
+import { THEMES } from '../../../themes'
 
 // ─── Defaults — overwritten by "Save defaults" in the control panel ───
 const BANNER_THEME          = 'lighter'

@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import DefaultSheet from '../../components/DefaultSheet'
-import FAB from '../../components/FAB'
-import ControlPanel from '../../components/ControlPanel'
-import ScrollTriggerLine from '../../components/ScrollTriggerLine'
+import DefaultSheet from '../../../components/DefaultSheet'
+import FAB from '../../../components/FAB'
+import ControlPanel from '../../../components/ControlPanel'
+import ScrollTriggerLine from '../../../components/ScrollTriggerLine'
 
 // ─── Defaults — overwritten by "Save defaults" in the control panel ───
 const FAB_THEME          = 'darker'

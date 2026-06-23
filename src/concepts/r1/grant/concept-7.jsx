@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import DefaultSheet from '../../components/DefaultSheet'
-import ScrollTriggerLine from '../../components/ScrollTriggerLine'
-import '../../components/ControlPanel.css'
-import { THEMES } from '../../themes'
-import { loadConceptConfig, saveConceptConfig } from '../../components/conceptConfig'
+import DefaultSheet from '../../../components/DefaultSheet'
+import ScrollTriggerLine from '../../../components/ScrollTriggerLine'
+import '../../../components/ControlPanel.css'
+import { THEMES } from '../../../themes'
+import { loadConceptConfig, saveConceptConfig } from '../../../components/conceptConfig'
 
 // ─── Defaults ─────────────────────────────────────────────────────────
 const WIDGET_THEME    = 'darker'

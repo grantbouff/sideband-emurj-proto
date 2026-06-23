@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useMotionValue, useAnimation } from 'framer-motion'
-import { THEMES } from '../../themes'
-import DefaultSheet from '../../components/DefaultSheet'
-import '../../components/ControlPanel.css'
+import { THEMES } from '../../../themes'
+import DefaultSheet from '../../../components/DefaultSheet'
+import '../../../components/ControlPanel.css'
 
 // ─── Defaults ────────────────────────────────────────────────────────────────
 const D = {

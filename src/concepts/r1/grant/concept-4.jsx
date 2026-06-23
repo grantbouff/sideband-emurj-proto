@@ -1,27 +1,28 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, useAnimation, AnimatePresence } from 'framer-motion'
-import DefaultSheet from '../../components/DefaultSheet'
-import ControlPanel from '../../components/ControlPanel'
-import ScrollTriggerLine from '../../components/ScrollTriggerLine'
-import { THEMES } from '../../themes'
+import DefaultSheet from '../../../components/DefaultSheet'
+import ControlPanel from '../../../components/ControlPanel'
+import ScrollTriggerLine from '../../../components/ScrollTriggerLine'
+import { THEMES } from '../../../themes'
 
 // ─── Defaults — overwritten by "Save defaults" in the control panel ───
-const FAB_THEME          = 'lighter'
+const FAB_THEME          = 'darker'
 const MODAL_THEME        = 'darker'
-const FAB_SHADOW_OPACITY = 21
+const FAB_SHADOW_OPACITY = 13
 const FAB_SCROLL_TRIGGER = 0
 const FAB_START_DELAY    = 1600
-const FAB_CONDENSE_DELAY = 4000   // hold time before auto-condensing
+const FAB_CONDENSE_DELAY = 3000   // hold time before auto-condensing
 const FAB_MORPH_DURATION = 750    // expand / condense speed
-const FAB_ENTER_DURATION = 900    // rise speed
+const FAB_ENTER_DURATION = 750    // radiate-in duration
 const FAB_EXIT_DURATION  = 300
 const FAB_DISMISS_TIMER  = null
 // ──────────────────────────────────────────────────────────────────────
 
-const EASE_IO = [0.87, 0, 0.13, 1]
+const EASE_IO  = [0.87, 0, 0.13, 1]
+const EASE_OUT = [0.16, 1, 0.3, 1]
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
-// ─── Inline SVGs (same as FAB.jsx) ────────────────────────────────────
+// ─── Inline SVGs ──────────────────────────────────────────────────────
 const EmurjLogo = ({ fill = '#000' }) => (
   <svg viewBox="0 0 41.0724 6.24" fill="none" xmlns="http://www.w3.org/2000/svg"
     style={{ width: 41.6, height: 6.24, display: 'block' }}>
@@ -40,31 +41,30 @@ const XIcon = () => (
 )
 // ──────────────────────────────────────────────────────────────────────
 
-function Concept3FAB({
-  theme         = 'darker',
-  shadowOpacity = 13,
-  startDelay    = 0,
-  scrollTrigger = 0,
-  holdDelay     = 4000,
-  riseDuration  = 600,
-  expandDuration = 500,
+function Concept4FAB({
+  theme          = 'darker',
+  shadowOpacity  = 13,
+  startDelay     = 0,
+  scrollTrigger  = 0,
+  holdDelay      = 3000,
+  radiateDuration = 750,
+  expandDuration  = 750,
   onOpen,
   onDismiss,
   onContextMenu,
 }) {
   const t = THEMES[theme] ?? THEMES.darker
 
-  const containerCtrl = useAnimation()
-  const logoCtrl      = useAnimation()
-  const textCtrl      = useAnimation()
-  const badgeCtrl     = useAnimation()
+  const containerCtrl  = useAnimation()
+  const ringCtrl       = useAnimation()
+  const pillScaleCtrl  = useAnimation()
+  const logoCtrl       = useAnimation()
+  const textCtrl       = useAnimation()
+  const badgeCtrl      = useAnimation()
 
   const [scrollReady, setScrollReady] = useState(() => window.innerHeight >= scrollTrigger)
   const cancelRef = useRef(false)
-  // Offset so the circle's right edge aligns with the expanded FAB's right edge (left:16 + width:314)
-  const centerX = useRef(314 - 68) // = 246px
 
-  // Watch iframe scroll for threshold trigger
   useEffect(() => {
     if (window.innerHeight >= scrollTrigger) { setScrollReady(true); return }
     setScrollReady(false)
@@ -83,32 +83,57 @@ function Concept3FAB({
     if (!scrollReady) return
     cancelRef.current = false
 
-    const RISE_S   = riseDuration / 1000
-    const EXPAND_S = expandDuration / 1000
+    const RADIATE_S = radiateDuration / 1000
+    const EXPAND_S  = expandDuration / 1000
 
     const run = async () => {
+      // ── Set initial state (container hidden, inner elements at their small scales) ──
+      containerCtrl.set({ opacity: 0, x: 0, width: 68 })
+      ringCtrl.set({ scale: 0, opacity: 1 })
+      pillScaleCtrl.set({ scale: 0 })
+      logoCtrl.set({ scale: 0, width: 64, height: 64, x: 0, y: 0 })
+      textCtrl.set({ opacity: 0 })
+      badgeCtrl.set({ opacity: 0, y: 20 })
+
       await sleep(startDelay)
       if (cancelRef.current) return
 
-      // ── Phase 1: Condensed circle rises up from below ──────────────
-      await containerCtrl.start({
-        opacity: 1, y: 0,
-        transition: { duration: RISE_S, ease: EASE_IO },
+      // Make container visible right as the radiate starts
+      containerCtrl.set({ opacity: 1 })
+
+      // ── Phase 1: Radiate in — ring leads, bg second, logo third ───────────
+      // Ring: expands to full size then fades away
+      ringCtrl.start({
+        scale: 1.0,
+        opacity: 0,
+        transition: {
+          scale:   { duration: RADIATE_S, ease: EASE_OUT },
+          opacity: { duration: RADIATE_S * 0.35, delay: RADIATE_S * 0.65, ease: 'linear' },
+        },
       })
+      // Black background: starts slightly behind the ring
+      pillScaleCtrl.start({
+        scale: 1.0,
+        transition: { duration: RADIATE_S, delay: RADIATE_S * 0.08, ease: EASE_OUT },
+      })
+      // Logo circle: starts slightly behind the background
+      logoCtrl.start({
+        scale: 1.0,
+        transition: { duration: RADIATE_S, delay: RADIATE_S * 0.15, ease: EASE_OUT },
+      })
+
+      await sleep(radiateDuration)
       if (cancelRef.current) return
 
-      // ── Phase 2: 250 ms pause ──────────────────────────────────────
+      // ── Phase 2: 250 ms pause — settled as condensed pill ─────────────────
       await sleep(250)
       if (cancelRef.current) return
 
-      // ── Phase 3: Expand ────────────────────────────────────────────
-      // Container slides left and grows in width
-      containerCtrl.start({ x: 0, width: 314, transition: { duration: EXPAND_S, ease: EASE_IO } })
-      // Logo container scales down slightly
-      logoCtrl.start({ width: 48, height: 48, x: 8, y: 8, transition: { duration: EXPAND_S, ease: EASE_IO } })
-      // Text fades in (clipped by pill overflow:hidden)
+      // ── Phase 3: Expand (C3's condense reversed, anchored at left:16) ─────
+      // No x translation needed — FAB is already at its final left position
+      containerCtrl.start({ width: 314, transition: { duration: EXPAND_S, ease: EASE_IO } })
+      logoCtrl.start({ width: 48, height: 48, x: 8, y: 8, scale: [1, 1.07, 1], transition: { duration: EXPAND_S, ease: EASE_IO } })
       textCtrl.start({ opacity: 1, transition: { duration: 0.375, delay: EXPAND_S * 0.35, ease: EASE_IO } })
-      // Dismiss badge flies up into position starting halfway through expand
       badgeCtrl.start({
         opacity: 1, y: 0,
         transition: { duration: EXPAND_S * 0.5, delay: EXPAND_S * 0.5, ease: EASE_IO },
@@ -117,16 +142,14 @@ function Concept3FAB({
       await sleep(expandDuration)
       if (cancelRef.current) return
 
-      // ── Phase 4: Hold ──────────────────────────────────────────────
+      // ── Phase 4: Hold ──────────────────────────────────────────────────────
       await sleep(holdDelay)
       if (cancelRef.current) return
 
-      // ── Phase 5: Auto-condense ─────────────────────────────────────
-      // Black background slides left (container shrinks from right), hiding the text
+      // ── Phase 5: Condense (same as C3) ────────────────────────────────────
       containerCtrl.start({ width: 68, transition: { duration: EXPAND_S, ease: EASE_IO } })
-      logoCtrl.start({ width: 64, height: 64, x: 0, y: 0, transition: { duration: EXPAND_S, ease: EASE_IO } })
+      logoCtrl.start({ width: 64, height: 64, x: 0, y: 0, scale: [1, 0.93, 1], transition: { duration: EXPAND_S, ease: EASE_IO } })
       textCtrl.start({ opacity: 0, transition: { duration: 0.3, ease: EASE_IO } })
-      // Badge stays visible, follows shrinking right edge via CSS right:-10
     }
 
     run()
@@ -135,7 +158,7 @@ function Concept3FAB({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 72, x: 246, width: 68 }}
+      initial={{ opacity: 0 }}
       animate={containerCtrl}
       exit={{ opacity: 0, transition: { duration: 0.15 } }}
       style={{
@@ -144,8 +167,22 @@ function Concept3FAB({
       }}
       onContextMenu={e => { e.preventDefault(); onContextMenu?.() }}
     >
-      {/* Black pill — overflow:hidden clips the expanding text reveal */}
+      {/* Ring — radiates out ahead of the pill, then fades away */}
+      <motion.div
+        initial={{ scale: 0, opacity: 1 }}
+        animate={ringCtrl}
+        style={{
+          position: 'absolute', inset: 0,
+          borderRadius: '50%',
+          border: '1.5px solid rgba(0,0,0,0.18)',
+          pointerEvents: 'none', zIndex: 4,
+        }}
+      />
+
+      {/* Black pill — scales in during radiate, expands via container width after */}
       <motion.button
+        initial={{ scale: 0 }}
+        animate={pillScaleCtrl}
         style={{
           position: 'absolute', inset: 0,
           background: t.fabBg, border: 'none', borderRadius: 34,
@@ -155,7 +192,6 @@ function Concept3FAB({
         onClick={onOpen}
       >
         <motion.p
-          initial={{ opacity: 0 }}
           animate={textCtrl}
           style={{
             position: 'absolute', left: 70, top: '50%',
@@ -169,9 +205,9 @@ function Concept3FAB({
         </motion.p>
       </motion.button>
 
-      {/* White logo circle — scales down as pill expands */}
+      {/* Logo circle — scales in last, then shrinks slightly during expand */}
       <motion.div
-        initial={{ width: 64, height: 64, x: 0, y: 0 }}
+        initial={{ scale: 0 }}
         animate={logoCtrl}
         style={{
           position: 'absolute', left: 2, top: 2,
@@ -184,10 +220,8 @@ function Concept3FAB({
         <EmurjLogo fill="#000000" />
       </motion.div>
 
-      {/* Dismiss badge — floats above the right edge, flies in halfway through expand.
-          CSS right:-10 keeps it 10 px past the pill's right edge at all widths. */}
+      {/* Dismiss badge — flies in during expand, follows right edge via CSS right:-10 */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
         animate={badgeCtrl}
         style={{
           position: 'absolute', right: -10, top: -12,
@@ -210,8 +244,8 @@ function Concept3FAB({
   )
 }
 
-// ─── Page ──────────────────────────────────────────────────────────────────────
-export default function Concept3({ page }) {
+// ─── Page ─────────────────────────────────────────────────────────────────────
+export default function Concept4({ page }) {
   const [open, setOpen] = useState(false)
   const [fabDismissed, setFabDismissed] = useState(false)
   const [showPanel, setShowPanel] = useState(false)
@@ -223,7 +257,7 @@ export default function Concept3({ page }) {
     startDelay:    FAB_START_DELAY,
     condenseDelay: FAB_CONDENSE_DELAY,   // maps to holdDelay
     morphDuration: FAB_MORPH_DURATION,   // maps to expandDuration
-    enterDuration: FAB_ENTER_DURATION,   // maps to riseDuration
+    enterDuration: FAB_ENTER_DURATION,   // maps to radiateDuration
     exitDuration:  FAB_EXIT_DURATION,
     dismissTimer:  FAB_DISMISS_TIMER,
   })
@@ -232,14 +266,14 @@ export default function Concept3({ page }) {
     <>
       <AnimatePresence>
         {!open && !fabDismissed && (
-          <Concept3FAB
+          <Concept4FAB
             key="fab"
             theme={config.fabTheme}
             shadowOpacity={config.shadowOpacity}
             scrollTrigger={config.scrollTrigger}
             startDelay={config.startDelay}
             holdDelay={config.condenseDelay}
-            riseDuration={config.enterDuration}
+            radiateDuration={config.enterDuration}
             expandDuration={config.morphDuration}
             onOpen={() => setOpen(true)}
             onDismiss={() => setFabDismissed(true)}

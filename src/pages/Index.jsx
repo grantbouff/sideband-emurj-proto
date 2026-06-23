@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { RELEASES } from '../releasesConfig'
 
 const CARDS = {
   grant: [
@@ -60,16 +61,28 @@ const CARDS = {
   ],
 }
 
+// Per-release card overrides — merged on top of CARDS by id
+const CARD_OVERRIDES = {
+  r2: {
+    nick: {
+      1: { title: 'Logo Right',            description: 'No timer, scroll to dismiss.', favorite: false },
+      2: { title: 'Logo Left',             description: 'No timer, X dismiss only.',    favorite: false },
+      3: { title: 'Logo Right With Timer', description: 'No timer, scroll to dismiss.', favorite: false },
+      4: { title: 'Logo Left With Timer',  description: 'No timer, X dismiss only.',    favorite: false },
+    },
+  },
+}
+
 const USERS = [
   { key: 'grant', name: 'Grant' },
   { key: 'nick',  name: 'Nick' },
 ]
 
-function ConceptCard({ user, card }) {
+function ConceptCard({ user, card, release }) {
   const [hovered, setHovered] = useState(false)
   return (
     <Link
-      to={`/concept/${user}/${card.id}/${card.page}`}
+      to={`/concept/${user}/${card.id}/${card.page}?release=${release}`}
       style={{ textDecoration: 'none', display: 'block' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -127,7 +140,7 @@ function ConceptCard({ user, card }) {
             margin: '0 0 5px 0',
             fontFamily: 'Inter, sans-serif',
           }}>
-            Concept {card.id}
+            {card.title || `Concept ${card.id}`}
           </h3>
           <p style={{
             fontSize: 12,
@@ -151,10 +164,42 @@ function ConceptCard({ user, card }) {
 }
 
 export default function Index() {
+  const [release, setRelease] = useState('r2')
+  const releaseConfig = RELEASES[release] || RELEASES.r2
+
+  const getFilteredCards = (user) => {
+    const availableIds = releaseConfig[user]?.map(c => c.id) || []
+    const overrides = CARD_OVERRIDES[release]?.[user] || {}
+    return CARDS[user]
+      .filter(card => availableIds.includes(card.id))
+      .map(card => ({ ...card, ...overrides[card.id] }))
+  }
+
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>FAB Prototypes</h1>
-      <p style={styles.subtitle}>Overlay component concepts</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div>
+          <h1 style={styles.title}>FAB Prototypes</h1>
+          <p style={styles.subtitle}>Overlay component concepts</p>
+        </div>
+        <select
+          value={release}
+          onChange={e => setRelease(e.target.value)}
+          style={{
+            padding: '8px 12px',
+            background: '#222',
+            border: '1px solid #333',
+            borderRadius: 4,
+            color: '#fff',
+            fontSize: 13,
+            fontFamily: 'Inter, sans-serif',
+            cursor: 'pointer',
+          }}
+        >
+          <option value="r2">Version 2 (V2)</option>
+          <option value="r1">Version 1 (V1)</option>
+        </select>
+      </div>
 
       <div style={styles.columns}>
         {USERS.map(({ key, name }) => (
@@ -162,8 +207,8 @@ export default function Index() {
         ))}
         {USERS.map(({ key }) => (
           <div key={key} style={styles.grid}>
-            {CARDS[key].map(card => (
-              <ConceptCard key={card.id} user={key} card={card} />
+            {getFilteredCards(key).map(card => (
+              <ConceptCard key={card.id} user={key} card={card} release={release} />
             ))}
           </div>
         ))}

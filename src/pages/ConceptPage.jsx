@@ -1,6 +1,7 @@
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { lazy, Suspense, useState } from 'react'
 import { NAV } from '../conceptNav'
+import { getNavConfig } from '../releasesConfig'
 
 const BASE = import.meta.env.BASE_URL
 const PAGE_URLS = {
@@ -8,29 +9,32 @@ const PAGE_URLS = {
   'product-detail': `${BASE}pages/product-detail.html`,
 }
 
-const conceptModules = import.meta.glob('../concepts/*/concept-*.jsx')
+const r1Modules = import.meta.glob('../concepts/r1/*/concept-*.jsx')
+const r2Modules = import.meta.glob('../concepts/r2/*/concept-*.jsx')
 
-function getConceptComponent(user, conceptId) {
-  const key = `../concepts/${user}/concept-${conceptId}.jsx`
-  if (conceptModules[key]) {
-    return lazy(conceptModules[key])
+function getConceptComponent(release, user, conceptId) {
+  const modules = release === 'r1' ? r1Modules : r2Modules
+  const key = `../concepts/${release}/${user}/concept-${conceptId}.jsx`
+  if (modules[key]) {
+    return lazy(modules[key])
   }
   return null
 }
 
-function ConceptNav({ user, conceptId }) {
+function ConceptNav({ release, user, conceptId }) {
   const [hovered, setHovered] = useState(false)
-  const concepts = NAV[user] || []
+  const navConfig = getNavConfig(release)
+  const concepts = navConfig[user] || []
   const idx      = concepts.findIndex(c => String(c.id) === String(conceptId))
   const prev     = concepts[idx - 1]
   const next     = concepts[idx + 1]
   const otherUser    = user === 'nick' ? 'grant' : 'nick'
-  const otherConcepts = NAV[otherUser] || []
+  const otherConcepts = navConfig[otherUser] || []
   const otherTarget  = otherConcepts.find(c => String(c.id) === String(conceptId)) || otherConcepts[0]
 
   // Silently update the hash then force full reload so entrance animations fire fresh
   const goTo = (u, id, page) => {
-    history.replaceState(null, '', `#/concept/${u}/${id}/${page}`)
+    history.replaceState(null, '', `#/concept/${u}/${id}/${page}?release=${release}`)
     window.location.reload()
   }
 
@@ -59,7 +63,7 @@ function ConceptNav({ user, conceptId }) {
         zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         background: 'rgba(255,255,255,0.2)',
         backdropFilter: hovered ? 'blur(8px)' : 'none',
         WebkitBackdropFilter: hovered ? 'blur(8px)' : 'none',
@@ -69,20 +73,28 @@ function ConceptNav({ user, conceptId }) {
         opacity: hovered ? 1 : 0,
         transition: 'opacity 0.2s ease',
       }}>
-      {/* Prev */}
-      <button
-        style={btnStyle(!prev)}
-        onClick={() => prev && goTo(user, prev.id, prev.page)}
-      >
-        ←
-      </button>
+      {/* Center group: home | C# | Nick Grant | ← → */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
 
-      {/* Center: concept label + user toggle */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.35)', fontFamily: 'Inter, sans-serif', letterSpacing: '0.02em' }}>
+        {/* Home icon */}
+        <a
+          href={`#/`}
+          style={{ display: 'flex', alignItems: 'center', padding: '0 4px', color: 'rgba(0,0,0,0.35)', lineHeight: '24px' }}
+        >
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+            <path d="M1 5.5L6 1.5L11 5.5V11H8V8H4V11H1V5.5Z" fill="currentColor" fillOpacity="0.7" />
+          </svg>
+        </a>
+
+        <div style={{ width: 1, height: 10, background: 'rgba(0,0,0,0.12)' }} />
+
+        {/* Concept label */}
+        <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.35)', fontFamily: 'Inter, sans-serif', letterSpacing: '0.02em', padding: '0 4px' }}>
           C{conceptId}
         </span>
+
         <div style={{ width: 1, height: 10, background: 'rgba(0,0,0,0.12)' }} />
+
         {/* User toggle */}
         {['nick', 'grant'].map(u => (
           <button
@@ -108,27 +120,28 @@ function ConceptNav({ user, conceptId }) {
             {u.charAt(0).toUpperCase() + u.slice(1)}
           </button>
         ))}
-      </div>
 
-      {/* Next */}
-      <button
-        style={btnStyle(!next)}
-        onClick={() => next && goTo(user, next.id, next.page)}
-      >
-        →
-      </button>
+        <div style={{ width: 1, height: 10, background: 'rgba(0,0,0,0.12)' }} />
+
+        {/* Prev / Next arrows */}
+        <button style={btnStyle(!prev)} onClick={() => prev && goTo(user, prev.id, prev.page)}>←</button>
+        <button style={btnStyle(!next)} onClick={() => next && goTo(user, next.id, next.page)}>→</button>
+
+      </div>
     </div>
   )
 }
 
 export default function ConceptPage() {
   const { user, conceptId, page } = useParams()
+  const [searchParams] = useSearchParams()
+  const release = searchParams.get('release') || 'r2'
   const bgUrl = PAGE_URLS[page]
-  const ConceptOverlay = getConceptComponent(user, conceptId)
+  const ConceptOverlay = getConceptComponent(release, user, conceptId)
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      <ConceptNav user={user} conceptId={conceptId} />
+      <ConceptNav release={release} user={user} conceptId={conceptId} />
       <iframe
         src={bgUrl}
         title="Background page"
