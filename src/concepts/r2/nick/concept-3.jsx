@@ -55,7 +55,7 @@ function TriggerFAB() {
       animate('#fab-container', { width: PILL_WIDTH }, {
         duration: 0.84, ease: EXPO_OUT,
       })
-      animate('#fab-avatar', { x: AVATAR_TRAVEL, rotate: 360 }, {
+      animate('#fab-avatar', { x: AVATAR_TRAVEL }, {
         duration: 0.84, ease: EXPO_OUT,
       })
       await animate('#fab-label', { opacity: 1, x: 0 }, {
