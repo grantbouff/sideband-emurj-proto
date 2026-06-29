@@ -24,7 +24,8 @@ export default function Concept3({ page }) {
 function TriggerFAB() {
   const [scope, animate]          = useAnimate()
   const dismissRef                = useRef(null)
-  const timerRef                  = useRef(null)
+  const timerTrackRef             = useRef(null)
+  const timerFillRef              = useRef(null)
   const [ready, setReady]         = useState(false)
   const [dismissed, setDismissed] = useState(false)
 
@@ -62,8 +63,15 @@ function TriggerFAB() {
         duration: 0.48, ease: SNAPPY_OUT, delay: 0.1,
       })
 
-      // Phase 4: dismiss button + timer bar fade in together
-      animate(timerRef.current, { opacity: 1 }, { duration: 0.3, ease: 'linear' })
+      // Phase 4: dismiss button + timer track fade in together
+      // Center the timer under the text by measuring at runtime
+      const TIMER_W = 190
+      const labelEl  = scope.current.querySelector('#fab-label')
+      const textLeft  = labelEl.offsetLeft
+      const textWidth = labelEl.offsetWidth
+      timerTrackRef.current.style.left  = Math.round(textLeft + (textWidth - TIMER_W) / 2) + 'px'
+      timerTrackRef.current.style.width = TIMER_W + 'px'
+      animate(timerTrackRef.current, { opacity: 1 }, { duration: 0.3, ease: 'linear' })
       await animate(dismissRef.current,
         { opacity: 1, scale: 1 },
         { duration: 0.22, ease: CIRC_OUT }
@@ -71,8 +79,8 @@ function TriggerFAB() {
 
       setReady(true)
 
-      // Phase 5: timer bar shrinks from full width to 0 over TIMER_DURATION seconds
-      await animate(timerRef.current,
+      // Phase 5: timer fill shrinks from full width to 0 over TIMER_DURATION seconds
+      await animate(timerFillRef.current,
         { width: '0%' },
         { duration: TIMER_DURATION, ease: 'linear' }
       )
@@ -116,11 +124,10 @@ function TriggerFAB() {
     <div ref={scope} style={{ position: 'relative' }}>
       <motion.div id="fab-container" style={styles.fab} initial={{ opacity: 0, scale: 0 }} onHoverStart={handleHoverStart} onHoverEnd={handleHoverEnd}>
 
-        {/* Timer bar — top edge, shrinks left to right */}
-        <div
-          ref={timerRef}
-          style={styles.timer}
-        />
+        {/* Timer — bottom of text zone, track + fill */}
+        <motion.div ref={timerTrackRef} style={styles.timerTrack} initial={{ opacity: 0 }}>
+          <motion.div ref={timerFillRef} style={styles.timerFill} initial={{ width: '100%' }} />
+        </motion.div>
 
         {/* Text — left side, in normal flow */}
         <motion.span
@@ -190,14 +197,20 @@ const styles = {
     padding: PADDING,
     boxSizing: 'border-box',
   },
-  timer: {
+  timerTrack: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: 4,
-    background: '#d8d8d8',
-    opacity: 0,
+    bottom: 6,
+    left: 43,
+    width: 180,
+    height: 2,
+    background: 'rgba(255,255,255,0.25)',
+    borderRadius: 1,
+    overflow: 'hidden',
+  },
+  timerFill: {
+    height: '100%',
+    background: '#fff',
+    borderRadius: 1,
   },
   avatar: {
     position: 'absolute',

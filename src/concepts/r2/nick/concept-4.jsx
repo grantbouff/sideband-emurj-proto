@@ -26,7 +26,8 @@ function TriggerFAB() {
   const ringRef                   = useRef(null)
   const textRef                   = useRef(null)
   const dismissRef                = useRef(null)
-  const timerRef                  = useRef(null)
+  const timerTrackRef             = useRef(null)
+  const timerFillRef              = useRef(null)
   const [ready, setReady]         = useState(false)
   const [dismissed, setDismissed] = useState(false)
 
@@ -88,7 +89,13 @@ function TriggerFAB() {
       )
 
       // ── ACT 5: DISMISS BUTTON + TIMER ─────────────────────────────────────
-      animate(timerRef.current, { opacity: 1 }, { duration: 0.3, ease: 'linear' })
+      // Center the timer under the text by measuring at runtime
+      const TIMER_W = 190
+      const textLeft  = textRef.current.offsetLeft
+      const textWidth = textRef.current.offsetWidth
+      timerTrackRef.current.style.left  = Math.round(textLeft + (textWidth - TIMER_W) / 2) + 'px'
+      timerTrackRef.current.style.width = TIMER_W + 'px'
+      animate(timerTrackRef.current, { opacity: 1 }, { duration: 0.3, ease: 'linear' })
       await animate(dismissRef.current,
         { opacity: 1, scale: 1 },
         { duration: 0.22, ease: CIRC_OUT }
@@ -97,7 +104,7 @@ function TriggerFAB() {
       setReady(true)
 
       // ── ACT 6: TIMER COUNTS DOWN ───────────────────────────────────────────
-      await animate(timerRef.current,
+      await animate(timerFillRef.current,
         { width: '0%' },
         { duration: TIMER_DURATION, ease: 'linear' }
       )
@@ -161,8 +168,10 @@ function TriggerFAB() {
           width: FAB_H,
         }}
       >
-        {/* Timer bar — top edge, fades in after expansion */}
-        <div ref={timerRef} style={styles.timer} />
+        {/* Timer — bottom of text zone, track + fill */}
+        <motion.div ref={timerTrackRef} style={styles.timerTrack} initial={{ opacity: 0 }}>
+          <motion.div ref={timerFillRef} style={styles.timerFill} initial={{ width: '100%' }} />
+        </motion.div>
 
         {/* Avatar */}
         <motion.div ref={avatarRef} style={styles.avatar}>
@@ -236,14 +245,20 @@ const styles = {
     transform: 'translateZ(0)',
   },
 
-  timer: {
+  timerTrack: {
     position: 'absolute',
-    top: 0,
+    bottom: 6,
     left: 0,
-    width: '100%',
-    height: 4,
-    background: '#d8d8d8',
-    opacity: 0,
+    width: 0,
+    height: 2,
+    background: 'rgba(255,255,255,0.25)',
+    borderRadius: 1,
+    overflow: 'hidden',
+  },
+  timerFill: {
+    height: '100%',
+    background: '#fff',
+    borderRadius: 1,
   },
 
   // Sonar ring — in wrapper (not inside FAB) so overflow:hidden can't clip it
