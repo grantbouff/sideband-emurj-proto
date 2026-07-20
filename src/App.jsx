@@ -1,6 +1,8 @@
 import { HashRouter as BrowserRouter, Routes, Route } from 'react-router-dom'
 import Index from './pages/Index'
 import ConceptPage from './pages/ConceptPage'
+import DemoIndex from './sideband-emurj-demo/DemoIndex'
+import DemoPage from './sideband-emurj-demo/DemoPage'
 import './index.css'
 
 export const CONCEPTS = {
@@ -29,6 +31,8 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/concept/:user/:conceptId/:page" element={<ConceptPage />} />
+        <Route path="/demo" element={<DemoIndex />} />
+        <Route path="/demo/:configId" element={<DemoPage />} />
       </Routes>
     </BrowserRouter>
   )

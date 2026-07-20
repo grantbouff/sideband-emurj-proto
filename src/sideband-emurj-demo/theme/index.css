@@ -1,0 +1,6 @@
+/* Single import for the SideBand token layer. Import once at a demo entry
+ * point (DemoPage / DemoIndex). foundation must precede theme (theme aliases it).
+ */
+@import "./foundation.css";
+@import "./theme.css";
+@import "./typography.css";

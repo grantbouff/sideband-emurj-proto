@@ -1,0 +1,32 @@
+/* SideBand — Foundation ramp (raw values)
+ * Source: Figma "Foundation" collection, transcribed from the exported
+ * .tokens.json files (neutral aliases + Brand Color `brand-primary`).
+ * These are raw values only; semantic tokens in theme.css alias into them.
+ * Do not consume --neutral-* / --brand-primary directly in components — use
+ * the semantic tokens (--text-*, --surface-*, --c-*) so theming stays swappable.
+ */
+:root {
+  --neutral-00: #FFFFFF;
+  --neutral-05: #FCFCFC;
+  --neutral-10: #FAFAFA;
+  --neutral-15: #F6F6F6;
+  --neutral-20: #F2F2F2;
+  --neutral-25: #E8E8E8;
+  --neutral-30: #DBDBDB;
+  --neutral-35: #CCCCCC;
+  --neutral-40: #B4B4B4;
+  --neutral-45: #999999;
+  --neutral-50: #808080;
+  --neutral-55: #6E6E6E;
+  --neutral-60: #5C5C5C;
+  --neutral-65: #474646;
+  --neutral-70: #323030;
+  --neutral-75: #2E2E2E;
+  --neutral-80: #1F1F1F;
+  --neutral-85: #131313;
+  --neutral-90: #080808;
+  --neutral-99: #000000;
+
+  /* Brand Color / brand-primary (current SideBand brand — orange). */
+  --brand-primary: #FEAB68;
+}

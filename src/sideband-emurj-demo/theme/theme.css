@@ -1,0 +1,214 @@
+/* SideBand — Semantic theme tokens (Theme collection: Lighter/Light/Dark/Darker)
+ * Transcribed from the exported .tokens.json files. Each mode-varying token
+ * aliases a Foundation neutral; alpha and brand tokens are literal.
+ *
+ * Independent FAB/modal theming: apply `data-theme` per subtree. A subtree
+ * carrying data-theme="lighter" re-declares the full set, so a lighter FAB can
+ * sit inside a dark sheet and NOT inherit it. Every mode (incl. lighter) is an
+ * explicit selector for exactly this reason; :root defaults to lighter.
+ *
+ * Mode-invariant tokens live in :root only. Semantic aliases such as
+ * `--c-fab-surface: var(--surface-base)` resolve per-subtree because custom
+ * properties are computed against the element's own cascaded values.
+ */
+:root {
+  /* Truly invariant tokens — alias only Foundation values that are never
+   * overridden per mode (brand-primary / neutral-00), so a single :root
+   * declaration is safe to inherit everywhere.
+   *
+   * NOTE: semantic aliases that point at a *mode-varying* token (e.g. a FAB
+   * surface aliasing --surface-base) must NOT live here — a var() in a custom
+   * property is substituted against the element it is DECLARED on and then the
+   * resolved value inherits, so a :root alias would lock to the lighter value.
+   * Those aliases are declared inside each [data-theme] block below instead.
+   */
+  --text-on-highlight: var(--neutral-00);
+  --text-brand: var(--brand-primary);
+  --surface-highlight: var(--brand-primary);
+  --c-fab-hairline-timer-fill: var(--brand-primary);
+
+  --element-error-accent-01: #FFDEDF;
+  --element-error-accent-02: #D00000;
+  --element-celebrate-accent-01: #FFEEC3;
+  --element-celebrate-accent-02: #FFC534;
+
+  --shade-less: rgba(0, 0, 0, 0.25);
+  --shade-default: rgba(0, 0, 0, 0.5);
+  --shade-more: rgba(0, 0, 0, 0.75);
+  --tint-less: rgba(255, 255, 255, 0.5);
+  --tint-default: rgba(255, 255, 255, 0.75);
+  --tint-more: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Lighter (default) ───────────────────────────────────────────────── */
+:root,
+[data-theme="lighter"] {
+  --text-primary: var(--neutral-99);
+  --text-secondary: var(--neutral-70);
+  --text-tertiary: var(--neutral-55);
+  --text-quaternary: var(--neutral-40);
+  --text-inverted: var(--neutral-00);
+
+  --surface-base: var(--neutral-00);
+  --surface-secondary: var(--neutral-10);
+  --surface-tertiary: var(--neutral-25);
+  --surface-primary-border: rgba(0, 0, 0, 0.05);
+
+  --c-fab-text: var(--text-primary);
+  --c-fab-surface: var(--surface-base);
+  --c-fab-border: var(--surface-primary-border);
+  --c-button-surface-tertiary: var(--surface-base);
+
+  --c-fab-ghosted-fill: rgba(0, 0, 0, 0.05);
+
+  --c-button-text-primary: var(--neutral-00);
+  --c-button-text-primary-inverted: var(--neutral-99);
+  --c-button-text-secondary: var(--neutral-99);
+  --c-button-text-tertiary: var(--neutral-99);
+  --c-button-surface-primary: var(--neutral-80);
+  --c-button-surface-primary-border: rgba(255, 255, 255, 0.15);
+  --c-button-surface-secondary: var(--neutral-20);
+  --c-button-surface-ghosted-border: var(--neutral-30);
+
+  --c-input-text-primary: var(--neutral-99);
+  --c-input-text-on-active: var(--neutral-00);
+  --c-input-surface-primary: var(--neutral-00);
+  --c-input-surface-primary-pressed: var(--neutral-05);
+  --c-input-surface-primary-active: var(--neutral-85);
+
+  --c-toggle-text-default: var(--neutral-99);
+  --c-toggle-text-on-active: var(--neutral-00);
+  --c-toggle-surface-default: var(--neutral-00);
+  --c-toggle-surface-pressed: var(--neutral-10);
+  --c-toggle-surface-active: var(--neutral-85);
+  --c-toggle-surface-active-pressed: var(--neutral-90);
+}
+
+/* ── Light ───────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --text-primary: var(--neutral-90);
+  --text-secondary: var(--neutral-65);
+  --text-tertiary: var(--neutral-50);
+  --text-quaternary: var(--neutral-40);
+  --text-inverted: var(--neutral-00);
+
+  --surface-base: var(--neutral-15);
+  --surface-secondary: var(--neutral-20);
+  --surface-tertiary: var(--neutral-30);
+  --surface-primary-border: rgba(0, 0, 0, 0.05);
+
+  --c-fab-text: var(--text-primary);
+  --c-fab-surface: var(--surface-base);
+  --c-fab-border: var(--surface-primary-border);
+  --c-button-surface-tertiary: var(--surface-base);
+
+  --c-fab-ghosted-fill: rgba(0, 0, 0, 0.05);
+
+  --c-button-text-primary: var(--neutral-00);
+  --c-button-text-primary-inverted: var(--neutral-99);
+  --c-button-text-secondary: var(--neutral-90);
+  --c-button-text-tertiary: var(--neutral-90);
+  --c-button-surface-primary: var(--neutral-99);
+  --c-button-surface-primary-border: rgba(255, 255, 255, 0.15);
+  --c-button-surface-secondary: var(--neutral-25);
+  --c-button-surface-ghosted-border: var(--neutral-35);
+
+  --c-input-text-primary: var(--neutral-90);
+  --c-input-text-on-active: var(--neutral-00);
+  --c-input-surface-primary: var(--neutral-00);
+  --c-input-surface-primary-pressed: var(--neutral-10);
+  --c-input-surface-primary-active: var(--neutral-85);
+
+  --c-toggle-text-default: var(--neutral-90);
+  --c-toggle-text-on-active: var(--neutral-00);
+  --c-toggle-surface-default: var(--neutral-10);
+  --c-toggle-surface-pressed: var(--neutral-15);
+  --c-toggle-surface-active: var(--neutral-85);
+  --c-toggle-surface-active-pressed: var(--neutral-90);
+}
+
+/* ── Dark ────────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --text-primary: var(--neutral-10);
+  --text-secondary: var(--neutral-35);
+  --text-tertiary: var(--neutral-50);
+  --text-quaternary: var(--neutral-60);
+  --text-inverted: var(--neutral-99);
+
+  --surface-base: var(--neutral-80);
+  --surface-secondary: var(--neutral-75);
+  --surface-tertiary: var(--neutral-70);
+  --surface-primary-border: rgba(255, 255, 255, 0.10);
+
+  --c-fab-text: var(--text-primary);
+  --c-fab-surface: var(--surface-base);
+  --c-fab-border: var(--surface-primary-border);
+  --c-button-surface-tertiary: var(--surface-base);
+
+  --c-fab-ghosted-fill: rgba(0, 0, 0, 0.07);
+
+  --c-button-text-primary: var(--neutral-99);
+  --c-button-text-primary-inverted: var(--neutral-00);
+  --c-button-text-secondary: var(--neutral-10);
+  --c-button-text-tertiary: var(--neutral-10);
+  --c-button-surface-primary: var(--neutral-00);
+  --c-button-surface-primary-border: rgba(0, 0, 0, 0.07);
+  --c-button-surface-secondary: var(--neutral-75);
+  --c-button-surface-ghosted-border: var(--neutral-60);
+
+  --c-input-text-primary: var(--neutral-10);
+  --c-input-text-on-active: var(--neutral-99);
+  --c-input-surface-primary: var(--neutral-80);
+  --c-input-surface-primary-pressed: var(--neutral-75);
+  --c-input-surface-primary-active: var(--neutral-20);
+
+  --c-toggle-text-default: var(--neutral-10);
+  --c-toggle-text-on-active: var(--neutral-99);
+  --c-toggle-surface-default: var(--neutral-80);
+  --c-toggle-surface-pressed: var(--neutral-85);
+  --c-toggle-surface-active: var(--neutral-20);
+  --c-toggle-surface-active-pressed: var(--neutral-25);
+}
+
+/* ── Darker ──────────────────────────────────────────────────────────── */
+[data-theme="darker"] {
+  --text-primary: var(--neutral-00);
+  --text-secondary: var(--neutral-25);
+  --text-tertiary: var(--neutral-45);
+  --text-quaternary: var(--neutral-60);
+  --text-inverted: var(--neutral-99);
+
+  --surface-base: var(--neutral-90);
+  --surface-secondary: var(--neutral-85);
+  --surface-tertiary: var(--neutral-80);
+  --surface-primary-border: rgba(255, 255, 255, 0.10);
+
+  --c-fab-text: var(--text-primary);
+  --c-fab-surface: var(--surface-base);
+  --c-fab-border: var(--surface-primary-border);
+  --c-button-surface-tertiary: var(--surface-base);
+
+  --c-fab-ghosted-fill: rgba(255, 255, 255, 0.07);
+
+  --c-button-text-primary: var(--neutral-99);
+  --c-button-text-primary-inverted: var(--neutral-00);
+  --c-button-text-secondary: var(--neutral-00);
+  --c-button-text-tertiary: var(--neutral-00);
+  --c-button-surface-primary: var(--neutral-20);
+  --c-button-surface-primary-border: rgba(0, 0, 0, 0.07);
+  --c-button-surface-secondary: var(--neutral-85);
+  --c-button-surface-ghosted-border: var(--neutral-65);
+
+  --c-input-text-primary: var(--neutral-00);
+  --c-input-text-on-active: var(--neutral-99);
+  --c-input-surface-primary: var(--neutral-90);
+  --c-input-surface-primary-pressed: var(--neutral-85);
+  --c-input-surface-primary-active: var(--neutral-15);
+
+  --c-toggle-text-default: var(--neutral-00);
+  --c-toggle-text-on-active: var(--neutral-99);
+  --c-toggle-surface-default: var(--neutral-90);
+  --c-toggle-surface-pressed: var(--neutral-90);
+  --c-toggle-surface-active: var(--neutral-15);
+  --c-toggle-surface-active-pressed: var(--neutral-20);
+}
