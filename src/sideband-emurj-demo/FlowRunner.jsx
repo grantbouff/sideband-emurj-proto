@@ -85,9 +85,11 @@ export default function FlowRunner({ config }) {
     entryNode = (
       <BottomBar
         question={config.entry.cta}
+        responses={config.entry.responses}
         dismissTimer={config.entry.dismissTimer ?? 12}
+        ratedTimer={config.entry.ratedTimer ?? 4}
         startDelay={config.entry.startDelay ?? 400}
-        onRate={openWithRating}
+        onRate={setSentiment}
         onDismiss={close}
       />
     )

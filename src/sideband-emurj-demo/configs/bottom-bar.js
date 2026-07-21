@@ -10,7 +10,18 @@ export default {
   title: 'Bottom bar',
   page: 'product-detail',
   description: 'Full-width bottom bar with inline thumbs. Checkout-experience flow.',
-  entry: { type: 'bottom-bar', cta: 'How was your checkout experience?', dismissTimer: 12 },
+  entry: {
+    type: 'bottom-bar',
+    cta: 'How was your checkout experience?',
+    dismissTimer: 12,
+    // The bar is terminal (Figma 3603:19663 / 3603:19715): rating swaps the
+    // question for one of these and the bar closes itself on `ratedTimer`.
+    responses: {
+      positive: 'Great to hear that!',
+      negative: 'Sorry to hear that.',
+    },
+    ratedTimer: 4,
+  },
   theming: { fab: { theme: 'lighter' }, modal: { theme: 'lighter' } },
   steps: [
     { type: 'binary', heading: 'How was your checkout experience?' },
