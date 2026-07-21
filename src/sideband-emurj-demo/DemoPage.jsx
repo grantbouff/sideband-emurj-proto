@@ -21,7 +21,7 @@ export default function DemoPage() {
     return (
       <div style={{ padding: 40, color: '#e0e0e0', fontFamily: 'Inter, sans-serif' }}>
         <p>Unknown prototype: <code>{configId}</code></p>
-        <Link to="/demo" style={{ color: '#4A7FEA' }}>← Back to prototypes</Link>
+        <Link to="/" style={{ color: '#4A7FEA' }}>← Back to prototypes</Link>
       </div>
     )
   }

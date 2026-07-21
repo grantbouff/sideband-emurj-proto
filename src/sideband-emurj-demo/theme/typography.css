@@ -49,14 +49,22 @@
   font-family: Inter, sans-serif;
   font-size: 14px;
   line-height: 1.3;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   font-weight: 400;
 }
 .sb-caption {
   font-family: Inter, sans-serif;
   font-size: 13px;
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+/* Optional eyebrow above a sheet heading. */
+.sb-eyebrow {
+  font-family: Inter, sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+  letter-spacing: 0;
   font-weight: 400;
 }
 .sb-button-label {

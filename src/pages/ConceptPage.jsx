@@ -32,9 +32,9 @@ function ConceptNav({ release, user, conceptId }) {
   const otherConcepts = navConfig[otherUser] || []
   const otherTarget  = otherConcepts.find(c => String(c.id) === String(conceptId)) || otherConcepts[0]
 
-  // Silently update the hash then force full reload so entrance animations fire fresh
+  // Silently update the URL then force full reload so entrance animations fire fresh
   const goTo = (u, id, page) => {
-    history.replaceState(null, '', `#/concept/${u}/${id}/${page}?release=${release}`)
+    history.replaceState(null, '', `${import.meta.env.BASE_URL}concept/${u}/${id}/${page}?release=${release}`)
     window.location.reload()
   }
 
@@ -78,7 +78,7 @@ function ConceptNav({ release, user, conceptId }) {
 
         {/* Home icon */}
         <a
-          href={`#/`}
+          href={`${import.meta.env.BASE_URL}fab-prototypes`}
           style={{ display: 'flex', alignItems: 'center', padding: '0 4px', color: 'rgba(0,0,0,0.35)', lineHeight: '24px' }}
         >
           <svg width="11" height="11" viewBox="0 0 12 12" fill="none">

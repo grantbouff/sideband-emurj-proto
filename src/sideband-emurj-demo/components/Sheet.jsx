@@ -19,6 +19,9 @@ export default function Sheet({
   onClose,
   slideIn = false,
   enterDelay = 0,
+  showHeader = true,     // End state hides the header entirely
+  headingLevel = 'h2',   // End / Interstitial states step up to H1
+  footerVariant = 'standard', // 'inline' = borderless, buttons share the width
 }) {
   const [isWide, setIsWide] = useState(() => window.innerWidth > 768)
   useEffect(() => {
@@ -50,10 +53,13 @@ export default function Sheet({
         onClick={(e) => e.stopPropagation()}
         style={{
           position: 'relative',
-          width: 'min(620px, calc(100vw - 40px))',
+          boxSizing: 'border-box',
+          width: 'min(376px, calc(100vw - 40px))',
           minWidth: 'min(344px, calc(100vw - 40px))',
+          maxWidth: 620,
           borderRadius: 32,
           background: 'var(--surface-base)',
+          border: '1px solid var(--surface-primary-border)',
           boxShadow: '0 8px 48px rgba(0,0,0,0.24)',
           overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
@@ -65,42 +71,46 @@ export default function Sheet({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0, 0.55, 0.45, 1], delay: enterDelay + 0.12 }}
         >
-          {/* Header */}
-          <div style={{ height: 50, position: 'relative', flexShrink: 0 }}>
-            <div style={{
-              position: 'absolute', left: 24, right: 72, top: 27,
-              height: 6, borderRadius: 24, overflow: 'hidden',
-              background: 'var(--surface-tertiary)',
-            }}>
+          {/* Header — 50px band; progress track inset 80/80, close at 16/10. */}
+          {showHeader && (
+            <div style={{ height: 50, position: 'relative', flexShrink: 0 }}>
               <div style={{
-                height: '100%', borderRadius: 24,
-                width: `${Math.max(0, Math.min(1, progress)) * 100}%`,
-                background: 'var(--text-primary)',
-                transition: 'width 0.3s ease',
-              }} />
+                position: 'absolute', left: 80, right: 80, top: 27,
+                height: 6, borderRadius: 24, overflow: 'hidden',
+                background: 'var(--surface-tertiary)',
+              }}>
+                <div style={{
+                  height: '100%', borderRadius: 24,
+                  width: `${Math.max(0, Math.min(1, progress)) * 100}%`,
+                  background: 'var(--text-primary)',
+                  transition: 'width 0.3s ease',
+                }} />
+              </div>
+              <button
+                onClick={onClose}
+                style={{
+                  position: 'absolute', top: 10, right: 16,
+                  width: 40, height: 40, borderRadius: 4,
+                  padding: 8, boxSizing: 'border-box',
+                  background: 'var(--c-button-surface-tertiary)',
+                  border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--text-primary)', pointerEvents: 'auto',
+                }}
+              >
+                <CloseIcon size={24} color="var(--text-primary)" />
+              </button>
             </div>
-            <button
-              onClick={onClose}
-              style={{
-                position: 'absolute', top: 8, right: 12,
-                width: 40, height: 40, borderRadius: 8,
-                background: 'transparent', border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--text-primary)', pointerEvents: 'auto',
-              }}
-            >
-              <CloseIcon size={22} color="var(--text-primary)" />
-            </button>
-          </div>
+          )}
 
-          {/* Content */}
+          {/* Content — full sheet width; the text column caps itself at 330. */}
           <div style={{
-            maxHeight: '60vh', overflowY: 'auto',
+            maxHeight: 'min(400px, 60vh)', overflowY: 'auto',
             display: 'flex', flexDirection: 'column', alignItems: 'center',
-            padding: '8px 24px 8px',
+            paddingTop: showHeader ? 0 : 16,
           }}>
             {media && (
-              <div style={{ padding: '8px 0 20px', display: 'flex', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                 {media}
               </div>
             )}
@@ -108,30 +118,37 @@ export default function Sheet({
             {(eyebrow || heading || body) && (
               <div style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
-                gap: 8, padding: '4px 0 24px', textAlign: 'center', maxWidth: 420,
+                gap: 8, padding: '2px 8px 16px', textAlign: 'center', width: '100%',
+                boxSizing: 'border-box',
               }}>
                 {eyebrow && (
-                  <p className="sb-caption" style={{ color: 'var(--text-tertiary)', margin: 0 }}>{eyebrow}</p>
+                  <p className="sb-eyebrow" style={{ color: 'var(--text-tertiary)', margin: 0 }}>{eyebrow}</p>
                 )}
                 {heading && (
-                  <h2 className="sb-heading-2" style={{ color: 'var(--text-primary)', margin: 0 }}>{heading}</h2>
+                  headingLevel === 'h1'
+                    ? <h2 className="sb-heading-1" style={{ color: 'var(--text-primary)', margin: 0, maxWidth: 330 }}>{heading}</h2>
+                    : <h2 className="sb-heading-2" style={{ color: 'var(--text-primary)', margin: 0, maxWidth: 330 }}>{heading}</h2>
                 )}
                 {body && (
-                  <p className="sb-body" style={{ color: 'var(--text-secondary)', margin: 0 }}>{body}</p>
+                  <p className="sb-body" style={{ color: 'var(--text-secondary)', margin: 0, maxWidth: 280 }}>{body}</p>
                 )}
               </div>
             )}
 
             {children && (
-              <div style={{ width: '100%', paddingBottom: 8 }}>{children}</div>
+              <div style={{ width: '100%', padding: '0 8px 16px', boxSizing: 'border-box' }}>{children}</div>
             )}
           </div>
 
           {/* Footer */}
           {footer && (
             <div style={{
-              padding: '16px 24px', display: 'flex', justifyContent: 'flex-end',
-              borderTop: '1px solid var(--surface-primary-border)',
+              padding: '18px 20px', display: 'flex', justifyContent: 'flex-end',
+              alignItems: footerVariant === 'inline' ? 'stretch' : 'center',
+              gap: footerVariant === 'inline' ? 8 : 16,
+              borderTop: footerVariant === 'inline'
+                ? 'none'
+                : '1px solid var(--c-button-surface-ghosted-border)',
             }}>
               {footer}
             </div>

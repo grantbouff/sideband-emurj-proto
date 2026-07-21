@@ -15,18 +15,25 @@ export const EmurjLogo = ({ fill = 'currentColor', width = 41.6, height = 6.24 }
   </svg>
 )
 
+const LOGO_ASPECT = 41.0724 / 6.24 // wordmark viewBox ratio
+
 // 32px (default) circular avatar — Emurj wordmark on white, matching the
-// existing FAB avatar treatment.
-export const EmurjAvatar = ({ size = 32 }) => (
-  <div style={{
-    width: size, height: size, borderRadius: '50%',
-    background: '#FFFFFF', flexShrink: 0,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    overflow: 'hidden',
-  }}>
-    <EmurjLogo fill="#000000" width={size * 0.65} height={size * 0.0975} />
-  </div>
-)
+// existing FAB avatar treatment (wordmark spans 41.6 of a 48 circle).
+export const EmurjAvatar = ({ size = 32 }) => {
+  // Height follows the viewBox ratio so the mark fills its box exactly —
+  // any other height letterboxes it and costs detail on the narrow "J".
+  const logoWidth = size * (41.6 / 48)
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%',
+      background: '#FFFFFF', flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      overflow: 'hidden',
+    }}>
+      <EmurjLogo fill="#000000" width={logoWidth} height={logoWidth / LOGO_ASPECT} />
+    </div>
+  )
+}
 
 export const CloseIcon = ({ size = 24, color = 'currentColor' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none">

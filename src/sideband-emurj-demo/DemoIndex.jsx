@@ -9,7 +9,7 @@ function PrototypeCard({ config }) {
   const [hovered, setHovered] = useState(false)
   return (
     <Link
-      to={`/demo/${config.id}`}
+      to={`/web-demo/${config.id}`}
       style={{ textDecoration: 'none', display: 'block' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -55,8 +55,8 @@ export default function DemoIndex() {
         <p style={{ fontSize: 14, color: '#555', margin: '0 0 8px 0', fontFamily: 'Inter, sans-serif' }}>
           Five themed prototypes over the SideBand token system
         </p>
-        <Link to="/" style={{ fontSize: 13, color: '#666', fontFamily: 'Inter, sans-serif' }}>
-          ← FAB Prototypes
+        <Link to="/fab-prototypes" style={{ fontSize: 13, color: '#666', fontFamily: 'Inter, sans-serif' }}>
+          FAB Prototypes →
         </Link>
       </div>
 

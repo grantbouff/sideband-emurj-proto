@@ -4,7 +4,7 @@ import DefaultSheet from '../../../components/DefaultSheet'
 import ScrollTriggerLine from '../../../components/ScrollTriggerLine'
 import '../../../components/ControlPanel.css'
 import { THEMES } from '../../../themes'
-import { loadConceptConfig, saveConceptConfig } from '../../../components/conceptConfig'
+import { loadConceptConfig, saveConceptConfig, currentConcept } from '../../../components/conceptConfig'
 
 // ─── Defaults ─────────────────────────────────────────────────────────
 const WIDGET_THEME    = 'darker'
@@ -230,7 +230,7 @@ function Concept7Panel({ config, onChange, onClose }) {
   const set = (key, val) => onChange({ ...config, [key]: val })
 
   const handleSave = async () => {
-    const [,, user, conceptId] = window.location.hash.slice(1).split('/')
+    const [user, conceptId] = currentConcept()
     const body = { user, conceptId, ...config }
     saveConceptConfig(body)
     try {

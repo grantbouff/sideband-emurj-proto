@@ -4,14 +4,17 @@ import { EmurjAvatar, CloseIcon } from './icons'
 
 const EASE_ENTER = [0.16, 1, 0.3, 1]
 
-/* TriggerFAB — the pill entry point. Geometry from Figma "Trigger FAB":
- * height 60, pad-left 14 / right 28, gap 12, radius 1000, 32px avatar,
- * label Inter SemiBold 14/100%. Colour via c-fab-* tokens.
+/* TriggerFAB — the pill entry point. Geometry from Figma "Trigger FAB"
+ * (node 3435:22433): height 60, pad-left 14, gap 12, radius 1000, 32px avatar,
+ * label Inter SemiBold 14/100%. Pad-right is 24 untimed, 28 when timed.
+ * Colour via c-fab-* tokens.
  *
  * timer:
  *   'none'       — static pill; dismiss via the X badge.
- *   'background'  — ghosted fill sweeps left→right, then auto-dismiss.
- *   'hairline'    — 2px brand hairline drains along the bottom, then auto-dismiss.
+ *   'background' — the surface drains left→right off a ghosted underlay.
+ *   'hairline'   — 2px brand hairline drains over a 25% track, under the label.
+ *
+ * Both timers are the same left-origin scaleX drain, so they share `drain`.
  *
  * layoutId="fab-surface" morphs the pill into the Sheet on open.
  */
@@ -36,6 +39,15 @@ export default function TriggerFAB({
     return () => clearTimeout(t)
   }, [timer, entered, dismissTimer, onDismiss])
 
+  // Shared left-origin drain used by both timed variants.
+  const drain = {
+    initial: { scaleX: 1 },
+    animate: { scaleX: 0 },
+    transition: { duration: dismissTimer, ease: 'linear' },
+    style: { transformOrigin: 'left', pointerEvents: 'none' },
+  }
+  const timed = timer !== 'none'
+
   return (
     <div style={{ position: 'fixed', bottom: 32, left: 20, zIndex: 50, pointerEvents: 'auto' }}>
       <motion.button
@@ -47,8 +59,10 @@ export default function TriggerFAB({
         style={{
           position: 'relative',
           display: 'flex', alignItems: 'center', gap: 12,
-          height: 60, paddingLeft: 14, paddingRight: 28,
+          height: 60, paddingLeft: 14, paddingRight: timed ? 28 : 24,
           borderRadius: 1000,
+          // Always opaque — the ghosted fill is a translucent overlay on top of
+          // this, never the pill's own background.
           background: 'var(--c-fab-surface)',
           border: '1px solid var(--c-fab-border)',
           boxShadow: '0 4px 32px rgba(0,0,0,0.16)',
@@ -56,37 +70,60 @@ export default function TriggerFAB({
         }}
       >
         {timer === 'background' && entered && (
-          <motion.div
-            initial={{ scaleX: 1 }}
-            animate={{ scaleX: 0 }}
-            transition={{ duration: dismissTimer, ease: 'linear' }}
-            style={{
-              position: 'absolute', inset: 0, transformOrigin: 'left',
-              background: 'var(--c-fab-ghosted-fill)', pointerEvents: 'none',
-            }}
-          />
+          <>
+            {/* Static translucent ghost, then the opaque surface drains off it. */}
+            <div
+              style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: 'var(--c-fab-ghosted-fill)',
+              }}
+            />
+            <motion.div
+              {...drain}
+              style={{
+                ...drain.style,
+                position: 'absolute', inset: 0,
+                background: 'var(--c-fab-surface)',
+              }}
+            />
+          </>
         )}
 
-        <EmurjAvatar size={32} />
-        <span
-          className="sb-button-label"
-          style={{ color: 'var(--c-fab-text)', whiteSpace: 'nowrap', position: 'relative' }}
-        >
-          {ctaValue}
+        {/* position:relative keeps the avatar above the drain layer. */}
+        <span style={{ position: 'relative', display: 'flex', flexShrink: 0 }}>
+          <EmurjAvatar size={32} />
         </span>
 
-        {timer === 'hairline' && entered && (
-          <motion.div
-            initial={{ scaleX: 1 }}
-            animate={{ scaleX: 0 }}
-            transition={{ duration: dismissTimer, ease: 'linear' }}
-            style={{
-              position: 'absolute', left: 0, right: 0, bottom: 0, height: 2,
-              transformOrigin: 'left',
-              background: 'var(--c-fab-hairline-timer-fill)', pointerEvents: 'none',
-            }}
-          />
-        )}
+        {/* Label wrapper is the hairline's track width — Figma scopes the timer
+         * to the text, not the full pill. */}
+        <span style={{ position: 'relative', height: 36, display: 'flex', alignItems: 'center' }}>
+          <span
+            className="sb-button-label"
+            style={{ color: 'var(--c-fab-text)', whiteSpace: 'nowrap' }}
+          >
+            {ctaValue}
+          </span>
+
+          {timer === 'hairline' && entered && (
+            <span
+              style={{
+                position: 'absolute', left: 0, right: 0, top: 42, height: 2,
+                borderRadius: 1000, overflow: 'hidden',
+                background: 'color-mix(in srgb, var(--c-fab-text) 25%, transparent)',
+              }}
+            >
+              <motion.span
+                {...drain}
+                style={{
+                  ...drain.style,
+                  position: 'absolute', inset: 0, display: 'block',
+                  borderRadius: 1000,
+                  background: 'var(--c-fab-hairline-timer-fill)',
+                }}
+              />
+            </span>
+          )}
+        </span>
       </motion.button>
 
       {/* X dismiss badge — the untimed variant's only way out. */}

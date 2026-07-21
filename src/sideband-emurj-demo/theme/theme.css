@@ -75,6 +75,7 @@
   --c-input-surface-primary: var(--neutral-00);
   --c-input-surface-primary-pressed: var(--neutral-05);
   --c-input-surface-primary-active: var(--neutral-85);
+  --c-input-surface-primary-active-pressed: var(--neutral-75);
 
   --c-toggle-text-default: var(--neutral-99);
   --c-toggle-text-on-active: var(--neutral-00);
@@ -118,6 +119,7 @@
   --c-input-surface-primary: var(--neutral-00);
   --c-input-surface-primary-pressed: var(--neutral-10);
   --c-input-surface-primary-active: var(--neutral-85);
+  --c-input-surface-primary-active-pressed: var(--neutral-75);
 
   --c-toggle-text-default: var(--neutral-90);
   --c-toggle-text-on-active: var(--neutral-00);
@@ -161,6 +163,7 @@
   --c-input-surface-primary: var(--neutral-80);
   --c-input-surface-primary-pressed: var(--neutral-75);
   --c-input-surface-primary-active: var(--neutral-20);
+  --c-input-surface-primary-active-pressed: var(--neutral-25);
 
   --c-toggle-text-default: var(--neutral-10);
   --c-toggle-text-on-active: var(--neutral-99);
@@ -204,6 +207,7 @@
   --c-input-surface-primary: var(--neutral-90);
   --c-input-surface-primary-pressed: var(--neutral-85);
   --c-input-surface-primary-active: var(--neutral-15);
+  --c-input-surface-primary-active-pressed: var(--neutral-20);
 
   --c-toggle-text-default: var(--neutral-00);
   --c-toggle-text-on-active: var(--neutral-99);

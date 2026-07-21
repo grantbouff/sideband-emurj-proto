@@ -116,21 +116,33 @@ export default function FlowRunner({ config }) {
         else setAnswer(key, v)
       }
       const canNext = multi ? sel.length > 0 : sel != null
+      const isVerbose = (step.styleVariant || 'concise') === 'verbose'
+      // Fixed-width columns so a lone chip on the last row keeps its size
+      // instead of stretching across the grid.
       slot = (
         <div style={{
-          display: 'flex', flexWrap: 'wrap', gap: 8,
-          justifyContent: 'center', width: '100%',
+          display: 'grid',
+          gridTemplateColumns: isVerbose
+            ? 'minmax(180px, 330px)'
+            : 'repeat(2, minmax(0, 160px))',
+          gap: 8,
+          justifyContent: 'center',
+          width: '100%', maxWidth: 512, margin: '0 auto',
         }}>
           {step.options.map((opt) => (
             <AnswerChip
               key={opt.value}
-              label={opt.label}
+              label={opt.type === 'other' ? 'Other…' : opt.label}
               type={opt.type || 'chip'}
               styleVariant={step.styleVariant || 'concise'}
               active={isActive(opt.value)}
-              onToggle={() => toggle(opt.value)}
-              inputValue={answers[`${key}-other`] || ''}
-              onInputChange={(v) => setAnswer(`${key}-other`, v)}
+              // 'other' is a divert, not a toggle: record it and move on to
+              // the long-form text step.
+              onToggle={() => {
+                setAnswer(key, opt.value)
+                if (opt.type === 'other') advance()
+                else toggle(opt.value)
+              }}
             />
           ))}
         </div>
@@ -149,7 +161,7 @@ export default function FlowRunner({ config }) {
       footer = <Button level="primary" styleVariant="compact" icon onClick={advance} />
     } else if (step.type === 'end') {
       if (step.media === 'checkmark') media = <Checkmark />
-      footer = <Button level="primary" styleVariant="compact" onClick={close}>Done</Button>
+      footer = <Button level="primary" styleVariant="fill" onClick={close}>Done</Button>
     }
   }
 
@@ -174,6 +186,9 @@ export default function FlowRunner({ config }) {
               footer={footer}
               onClose={close}
               slideIn={entryType === 'sheet'}
+              showHeader={step.type !== 'end'}
+              headingLevel={step.type === 'end' ? 'h1' : 'h2'}
+              footerVariant={step.type === 'end' ? 'inline' : 'standard'}
             >
               <AnimatePresence mode="wait">
                 <motion.div
