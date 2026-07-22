@@ -20,7 +20,7 @@ export default {
       positive: 'Great to hear that!',
       negative: 'Sorry to hear that.',
     },
-    ratedTimer: 4,
+    ratedTimer: 3,
   },
   theming: { fab: { theme: 'lighter' }, modal: { theme: 'lighter' } },
   steps: [

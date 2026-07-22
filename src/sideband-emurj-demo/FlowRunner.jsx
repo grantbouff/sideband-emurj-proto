@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import TriggerFAB from './components/TriggerFAB'
 import BottomBar from './components/BottomBar'
@@ -21,6 +21,14 @@ import Checkmark from './components/Checkmark'
  * sit over a dark sheet — the sheet's mode never leaks into the FAB.
  */
 
+// Delay before any entry point appears, so the prototype never fires the
+// instant the page loads. Overridable per config via entry.startDelay.
+const START_DELAY = 1500
+
+// How long the binary step holds its rated-feedback message before the flow
+// advances to the next sheet (the bottom bar's rated hold, minus the dismiss).
+const RATED_HOLD_MS = 2000
+
 // Flatten config.steps into a concrete list, expanding the branch step.
 function resolveSteps(steps, sentiment) {
   const out = []
@@ -40,8 +48,15 @@ export default function FlowRunner({ config }) {
   const entryTheme = config.theming?.fab?.theme || config.theming?.modal?.theme || 'lighter'
   const modalTheme = config.theming?.modal?.theme || 'lighter'
 
-  // 'sheet' entry opens immediately; others wait for interaction.
-  const [opened, setOpened] = useState(entryType === 'sheet')
+  // Every entry waits START_DELAY before appearing so the background page
+  // registers first; 'sheet' then opens on its own, others wait for interaction.
+  const startDelay = config.entry.startDelay ?? START_DELAY
+  const [opened, setOpened] = useState(false)
+  useEffect(() => {
+    if (entryType !== 'sheet') return
+    const t = setTimeout(() => setOpened(true), startDelay)
+    return () => clearTimeout(t)
+  }, [entryType, startDelay])
   const [dismissed, setDismissed] = useState(false)
   const [sentiment, setSentiment] = useState(null)   // 'positive' | 'negative'
   const [stepIndex, setStepIndex] = useState(0)
@@ -57,6 +72,15 @@ export default function FlowRunner({ config }) {
 
   const close = () => setDismissed(true)
   const advance = () => { if (isLast) close(); else setStepIndex((i) => i + 1) }
+
+  // Auto-advance after a beat so the selection state is visible before the
+  // step transition. Guarded so rapid taps can't skip a step.
+  const advancePending = useRef(false)
+  const scheduleAdvance = () => {
+    if (advancePending.current) return
+    advancePending.current = true
+    setTimeout(() => { advancePending.current = false; advance() }, 250)
+  }
 
   // Entry that carries the rating (bottom bar): set sentiment and skip the
   // leading binary step. Assumes steps[0] is the binary step by convention.
@@ -76,7 +100,7 @@ export default function FlowRunner({ config }) {
         ctaValue={config.entry.cta}
         timer={config.entry.timer || 'none'}
         dismissTimer={config.entry.dismissTimer ?? 8}
-        startDelay={config.entry.startDelay ?? 400}
+        startDelay={startDelay}
         onOpen={() => setOpened(true)}
         onDismiss={close}
       />
@@ -87,8 +111,8 @@ export default function FlowRunner({ config }) {
         question={config.entry.cta}
         responses={config.entry.responses}
         dismissTimer={config.entry.dismissTimer ?? 12}
-        ratedTimer={config.entry.ratedTimer ?? 4}
-        startDelay={config.entry.startDelay ?? 400}
+        ratedTimer={config.entry.ratedTimer ?? 3}
+        startDelay={startDelay}
         onRate={setSentiment}
         onDismiss={close}
       />
@@ -105,7 +129,16 @@ export default function FlowRunner({ config }) {
       slot = (
         <BinaryRating
           value={sentiment}
-          onRate={(kind) => { setSentiment(kind); advance() }}
+          // With a configured response the sheet swaps the question for the
+          // feedback message and holds so it can be read (the thumbs stay,
+          // selection lit) before advancing; without one it advances straight
+          // away. Guarded so a second tap during the hold can't re-rate.
+          onRate={(kind) => {
+            if (sentiment) return
+            setSentiment(kind)
+            if (step.responses?.[kind]) setTimeout(advance, RATED_HOLD_MS)
+            else advance()
+          }}
         />
       )
     } else if (step.type === 'chips') {
@@ -147,11 +180,18 @@ export default function FlowRunner({ config }) {
               styleVariant={styleVariant}
               active={isActive(opt.value)}
               // 'other' is a divert, not a toggle: record it and move on to
-              // the long-form text step.
+              // the long-form text step. Single-select picks also advance —
+              // after a beat, so the active chip registers first.
               onToggle={() => {
-                setAnswer(key, opt.value)
-                if (opt.type === 'other') advance()
-                else toggle(opt.value)
+                if (opt.type === 'other') {
+                  setAnswer(key, opt.value)
+                  advance()
+                } else if (multi) {
+                  toggle(opt.value)
+                } else {
+                  setAnswer(key, opt.value)
+                  scheduleAdvance()
+                }
               }}
             />
           ))}
@@ -166,15 +206,26 @@ export default function FlowRunner({ config }) {
           multiline
           value={answers[key] || ''}
           onChange={(v) => setAnswer(key, v)}
+          onSubmit={advance}
           placeholder={step.placeholder || 'Type your answer…'}
         />
       )
       footer = <Button level="primary" styleVariant="compact" icon onClick={advance} />
     } else if (step.type === 'end') {
       if (step.media === 'checkmark') media = <Checkmark />
-      footer = <Button level="primary" styleVariant="fill" onClick={close}>Done</Button>
+      // Done drains like the background-timer FAB and auto-dismisses at empty.
+      footer = (
+        <Button level="primary" styleVariant="fill" onClick={close} timer={step.dismissTimer ?? 10}>
+          Done
+        </Button>
+      )
     }
   }
+
+  // While the rated binary step holds, the feedback message replaces the
+  // question (and any body copy). The Sheet animates the swap itself.
+  const ratedResponse =
+    step?.type === 'binary' && sentiment ? step.responses?.[sentiment] : null
 
   // Map the step to the Figma Sheet Type variant: the opening binary rating is
   // the Start sheet (no progress track), the thank-you is End, questions are
@@ -200,12 +251,19 @@ export default function FlowRunner({ config }) {
               progress={progress}
               stepKey={stepIndex}
               eyebrow={step.eyebrow}
-              heading={step.heading}
-              body={step.body}
+              heading={ratedResponse ?? step.heading}
+              body={ratedResponse ? undefined : step.body}
+              // Hold the question's height through the feedback swap — the
+              // sheet shouldn't shrink for 2s and grow right back.
+              lockHeight={!!ratedResponse}
               media={media}
               footer={footer}
               onClose={close}
               slideIn={entryType === 'sheet'}
+              // When the FAB morphs into the sheet across themes, the sheet
+              // starts on the FAB's surface colour and snaps to its own —
+              // without this the dark pill would pop straight to white.
+              morphFromTheme={entryType === 'fab' && entryTheme !== modalTheme ? entryTheme : null}
             >
               {slot}
             </Sheet>

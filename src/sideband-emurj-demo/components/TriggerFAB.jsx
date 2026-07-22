@@ -128,27 +128,25 @@ export default function TriggerFAB({
     setTimeout(() => onDismiss?.(), EXIT_MS)
   }
 
-  // Auto-dismiss for the timed variants. Both the drain and this share the
-  // same `drainDelay` head start, so `dismissTimer` stays honest as "how long
-  // the bar takes to empty" — the pill just sits full for a beat first.
-  useEffect(() => {
-    if (timer === 'none' || !expanded) return
-    const t = setTimeout(dismiss, (T.drainDelay + dismissTimer) * 1000)
-    return () => clearTimeout(t)
-  }, [timer, expanded, dismissTimer])
-
   // The timer layers outlive `expanded`: dismissing clears it to drive the
   // width collapse, but unmounting the drain with it would snap the surface
   // back to opaque white for a frame before the exit plays. Hold them until
   // the whole group is gone.
   const showTimer = expanded || exiting
 
-  // Shared left-origin drain used by both timed variants.
+  // Shared left-origin drain used by both timed variants — a CSS animation
+  // (theme/motion.css) so hovering the pill pauses it. Its completion IS the
+  // auto-dismiss: `animationend` fires dismiss, so a paused drain pauses the
+  // timer by construction. `drainDelay` keeps `dismissTimer` honest as "how
+  // long the bar takes to empty" — the pill sits full for a beat first.
   const drain = {
-    initial: { scaleX: 1 },
-    animate: { scaleX: 0 },
-    transition: { duration: dismissTimer, delay: T.drainDelay, ease: 'linear' },
-    style: { transformOrigin: 'left', pointerEvents: 'none' },
+    className: 'sb-timer-drain',
+    onAnimationEnd: (e) => { if (e.animationName === 'sb-drain') dismiss() },
+    style: {
+      animationDuration: `${dismissTimer}s`,
+      animationDelay: `${T.drainDelay}s`,
+      pointerEvents: 'none',
+    },
   }
   const timed = timer !== 'none'
 
@@ -174,6 +172,7 @@ export default function TriggerFAB({
     >
       <motion.button
         layoutId="fab-surface"
+        className="sb-timer-hover-scope"
         onClick={onOpen}
         initial={{ scale: 0, width: COLLAPSED, boxShadow: SHADOW }}
         animate={{
@@ -194,7 +193,11 @@ export default function TriggerFAB({
         style={{
           position: 'relative',
           display: 'flex', alignItems: 'center', gap: GAP,
-          height: 60, paddingLeft: PAD_LEFT, paddingRight: padRight,
+          // Figma's insets are from the visual edge — its stroke takes no
+          // layout space — so the 1px border eats into each pad here. With the
+          // full 10px the avatar centers at x=31 in the 60px circle phase, and
+          // the logo reads 1px right of center while the FAB scales in.
+          height: 60, paddingLeft: PAD_LEFT - 1, paddingRight: padRight - 1,
           // 30, not 1000: for a 60-high box they render identically (radius
           // clamps at half-height), but the layoutId morph tweens the
           // *declared* value to the Sheet's 32 — from 1000 the corners stay
@@ -216,7 +219,7 @@ export default function TriggerFAB({
                 background: 'var(--c-fab-ghosted-fill)',
               }}
             />
-            <motion.div
+            <div
               {...drain}
               style={{
                 ...drain.style,
@@ -287,7 +290,7 @@ export default function TriggerFAB({
                 background: 'color-mix(in srgb, var(--c-fab-text) 15%, transparent)',
               }}
             >
-              <motion.span
+              <span
                 {...drain}
                 style={{
                   ...drain.style,

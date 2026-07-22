@@ -14,7 +14,15 @@ export default {
   entry: { type: 'sheet' },
   theming: { fab: { theme: 'lighter' }, modal: { theme: 'lighter' } },
   steps: [
-    { type: 'binary', heading: 'Did you find what you were looking for?' },
+    {
+      type: 'binary',
+      heading: 'Did you find what you were looking for?',
+      // Post-rating feedback, held before advancing — mirrors the branch tone.
+      responses: {
+        positive: 'Nice! Glad you found it.',
+        negative: 'Oh sorry about that. Let’s fix that.',
+      },
+    },
     {
       branch: {
         positive: [

@@ -7,6 +7,7 @@ import { useState } from 'react'
 export default function TextField({
   value = '',
   onChange,
+  onSubmit,
   placeholder = 'Type your answer…',
   multiline = false,
   rows = 3,
@@ -42,6 +43,14 @@ export default function TextField({
     onChange: (e) => onChange?.(e.target.value),
     onFocus: () => setFocused(true),
     onBlur: () => setFocused(false),
+    // Enter submits (even in the multiline field); Shift+Enter keeps the
+    // newline for longer answers.
+    onKeyDown: (e) => {
+      if (e.key === 'Enter' && !e.shiftKey && onSubmit) {
+        e.preventDefault()
+        onSubmit()
+      }
+    },
   }
 
   return multiline

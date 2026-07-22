@@ -9,6 +9,6 @@ export default {
   page: 'product-detail',
   description: 'Pill FAB with a background fill that sweeps before auto-dismiss. Sizing-info flow.',
   entry: { type: 'fab', timer: 'background', cta: SIZING_CTA, dismissTimer: 8 },
-  theming: { fab: { theme: 'lighter' }, modal: { theme: 'lighter' } },
+  theming: { fab: { theme: 'darker' }, modal: { theme: 'lighter' } },
   steps: sizingSteps,
 }

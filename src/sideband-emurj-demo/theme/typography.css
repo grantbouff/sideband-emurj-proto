@@ -1,5 +1,5 @@
 /* SideBand — Typography (Inter throughout).
- * Nine type styles from the SideBand type scale, as reusable classes.
+ * Type styles from the SideBand type scale, as reusable classes.
  * size / line-height / letter-spacing / weight. Colour is NOT set here —
  * pair with a --text-* token at the call site.
  */
@@ -12,8 +12,17 @@
 }
 .sb-heading-2 {
   font-family: Inter, sans-serif;
-  font-size: 22px;
+  font-size: 18px;
   line-height: 1.2;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+/* Figma `Heading/H2 - Web` — the in-page (non-modal) H2, e.g. the bottom
+ * bar's rated feedback message. */
+.sb-heading-2-web {
+  font-family: Inter, sans-serif;
+  font-size: 18px;
+  line-height: 1.4;
   letter-spacing: 0;
   font-weight: 600;
 }

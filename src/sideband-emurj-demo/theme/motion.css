@@ -1,0 +1,26 @@
+/* SideBand — shared timer-drain motion.
+ *
+ * One left-origin scaleX drain used by every timed surface: TriggerFAB's
+ * background/hairline timers, Button's timed variant, BottomBar's Not Now
+ * hairline. It is a CSS animation rather than a framer tween so that hovering
+ * the host (.sb-timer-hover-scope) pauses it — and because the components
+ * auto-dismiss on `animationend` rather than a parallel setTimeout, pausing
+ * the visual pauses the deadline by construction; the two can never drift.
+ * Duration/delay are set inline per component.
+ */
+@keyframes sb-drain {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+.sb-timer-drain {
+  animation-name: sb-drain;
+  animation-timing-function: linear;
+  /* `both`: hold full through the pre-drain delay, hold empty after. */
+  animation-fill-mode: both;
+  transform-origin: left center;
+}
+
+.sb-timer-hover-scope:hover .sb-timer-drain {
+  animation-play-state: paused;
+}

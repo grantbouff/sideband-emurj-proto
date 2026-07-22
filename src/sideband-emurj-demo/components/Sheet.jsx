@@ -11,10 +11,12 @@ import { CloseIcon } from './icons'
  * tokens. Anchored bottom-left to match the FAB origin.
  *
  * Per-variant spec (Figma):
- *   start        header close-only, no progress, max width 414
- *   in-progress  header with progress track, max width 620
- *   interstitial header close-only, H1, text pads 20/24, max width 414
- *   end          header hidden entirely, H1, inline footer, max width 414
+ *   start        header close-only, no progress
+ *   in-progress  header with progress track
+ *   interstitial header close-only, H1, text pads 20/24
+ *   end          header hidden entirely, H1, inline footer
+ * (Figma gives per-variant max widths of 414/620; this demo pins every
+ * variant to a fixed 320 instead.)
  */
 export default function Sheet({
   variant = 'in-progress', // 'start' | 'in-progress' | 'interstitial' | 'end'
@@ -29,6 +31,8 @@ export default function Sheet({
   slideIn = false,
   enterDelay = 0,
   stepKey = 0,  // changes per step; keys the content crossfade
+  morphFromTheme = null, // entry theme when the FAB morph crosses themes
+  lockHeight = false, // freeze the surface height (the binary rated hold)
 }) {
   const [isWide, setIsWide] = useState(() => window.innerWidth > 768)
   useEffect(() => {
@@ -49,13 +53,43 @@ export default function Sheet({
   // sheet collapses to pill height and crawls back up. Only animate changes
   // after that.
   const hasMeasured = useRef(false)
+  // While locked (the rated-feedback hold) new measurements are ignored, so
+  // the sheet keeps the question's height instead of shrinking around the
+  // shorter feedback text. Ref, not dep, so the observer never re-subscribes.
+  const lockRef = useRef(false)
+  lockRef.current = lockHeight
   useLayoutEffect(() => {
     const el = innerRef.current
     if (!el) return
-    const ro = new ResizeObserver(() => setHeight(el.offsetHeight))
+    const ro = new ResizeObserver(() => { if (!lockRef.current) setHeight(el.offsetHeight) })
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
+  // On release, re-measure once — the unlock and the next step's resize can
+  // land in the same frame, and the observer only fires on further changes.
+  useEffect(() => {
+    if (!lockHeight && innerRef.current) setHeight(innerRef.current.offsetHeight)
+  }, [lockHeight])
+
+  // The text block gets the same freeze: the rated swap trades a two-line
+  // question for a one-line response, and without a reserved height the
+  // thumbs beneath would jump up. Track the block's height (gated like the
+  // sheet's), then pin it as minHeight for the duration of the lock.
+  const textWrapRef = useRef(null)
+  const textHeightRef = useRef(0)
+  const [textMinHeight, setTextMinHeight] = useState(null)
+  useLayoutEffect(() => {
+    const el = textWrapRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => {
+      if (!lockRef.current) textHeightRef.current = el.offsetHeight
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  useLayoutEffect(() => {
+    setTextMinHeight(lockHeight ? textHeightRef.current : null)
+  }, [lockHeight])
   useEffect(() => {
     if (height !== 'auto') hasMeasured.current = true
   }, [height])
@@ -64,8 +98,6 @@ export default function Sheet({
   const showProgress = variant === 'in-progress'
   const isH1 = variant === 'interstitial' || variant === 'end'
   const inlineFooter = variant === 'end'
-  // Only In-Progress stretches to 620; the bookend states cap at 414.
-  const maxWidth = variant === 'in-progress' ? 620 : 414
   // Interstitial gives its lone heading more breathing room.
   const textPadding = variant === 'interstitial' ? '20px 12px 24px' : '2px 12px 16px'
 
@@ -93,9 +125,10 @@ export default function Sheet({
         style={{
           position: 'relative',
           boxSizing: 'border-box',
-          width: 'min(376px, calc(100vw - 40px))',
-          minWidth: 'min(344px, calc(100vw - 40px))',
-          maxWidth,
+          // Fixed sheet width — one declared value in every variant, so the
+          // layoutId morph tweens toward a stable target and never re-derives
+          // width mid-flight from min/max constraints.
+          width: 'min(320px, calc(100vw - 40px))',
           borderRadius: 32,
           background: 'var(--surface-base)',
           border: '1px solid var(--surface-primary-border)',
@@ -104,6 +137,23 @@ export default function Sheet({
           display: 'flex', flexDirection: 'column',
         }}
       >
+        {/* Cross-theme morph handoff: the surface starts as the entry theme's
+            FAB colour and ducks out fast — a quick shift, deliberately much
+            shorter than the 0.5s morph, so dark→light never lingers in a dull
+            grey mid-blend. data-theme scopes the token lookup to the entry
+            theme; positioned before the content wrapper so text paints above. */}
+        {morphFromTheme && (
+          <motion.div
+            data-theme={morphFromTheme}
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: 0.18, delay: enterDelay, ease: 'easeOut' }}
+            style={{
+              position: 'absolute', inset: 0, pointerEvents: 'none',
+              background: 'var(--c-fab-surface)',
+            }}
+          />
+        )}
         <motion.div
           animate={{ height }}
           // Ease-in-out, not the expo-out the surface uses for its morph: an
@@ -177,7 +227,12 @@ export default function Sheet({
           >
           {/* Content — full sheet width; the text column caps itself at 330. */}
           <div style={{
-            maxHeight: 'min(400px, 60vh)', overflowY: 'auto',
+            maxHeight: 'min(400px, 60vh)',
+            // The start sheet never scrolls, and its rated pop burst reaches
+            // past this box — 'auto' would grow a scrollable region under the
+            // dots. The comp clips the burst at the sheet edge, which the
+            // surface's own overflow:hidden already does.
+            overflowY: variant === 'start' ? 'visible' : 'auto',
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             paddingTop: showHeader ? 0 : 16,
           }}>
@@ -188,20 +243,55 @@ export default function Sheet({
             )}
 
             {(eyebrow || heading || body) && (
-              <div style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                gap: 8, padding: textPadding, textAlign: 'center', width: '100%',
-                boxSizing: 'border-box',
-              }}>
-                {eyebrow && (
-                  <p className="sb-eyebrow" style={{ color: 'var(--text-tertiary)', margin: 0 }}>{eyebrow}</p>
-                )}
-                {heading && (
-                  <h2 className={isH1 ? 'sb-heading-1' : 'sb-heading-2'} style={{ color: 'var(--text-primary)', margin: 0, maxWidth: 330, textWrap: 'pretty' }}>{heading}</h2>
-                )}
-                {body && (
-                  <p className="sb-body" style={{ color: 'var(--text-secondary)', margin: 0, maxWidth: 280 }}>{body}</p>
-                )}
+              <div
+                ref={textWrapRef}
+                style={{
+                  width: '100%', minHeight: textMinHeight ?? undefined,
+                  // Centre the (shorter) response in the reserved space.
+                  display: 'flex', flexDirection: 'column', justifyContent: 'center',
+                }}
+              >
+              {/* Keyed by heading: a swap *within* a step (the binary step's
+                  rated feedback) plays the Figma comp's treatment (node
+                  3022:14071, rebased to the tap): after a 0.14s beat the
+                  outgoing text fades while rising 25px; the feedback scales
+                  0.5→1 with the comp's overshoot-settle ease from an origin
+                  *below* the text, so it pops up-and-into place.
+                  initial={false} leaves step-to-step changes to the stepKey
+                  crossfade above, which remounts this subtree wholesale. */}
+              <AnimatePresence mode="popLayout" initial={false}>
+                <motion.div
+                  key={heading || 'text'}
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{
+                    opacity: 0, y: -25,
+                    transition: {
+                      opacity: { duration: 0.25, delay: 0.14, ease: [0.5, 0, 0.5, 1] },
+                      y: { duration: 0.38, delay: 0.14, ease: 'linear' },
+                    },
+                  }}
+                  transition={{
+                    opacity: { duration: 0.19, delay: 0.14, ease: [0.5, 0, 0.5, 1] },
+                    scale: { duration: 1.09, delay: 0.12, ease: [0, 0.827, 0, 1.045] },
+                  }}
+                  style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    gap: 8, padding: textPadding, textAlign: 'center', width: '100%',
+                    boxSizing: 'border-box', transformOrigin: '50% 235%',
+                  }}
+                >
+                  {eyebrow && (
+                    <p className="sb-eyebrow" style={{ color: 'var(--text-tertiary)', margin: 0 }}>{eyebrow}</p>
+                  )}
+                  {heading && (
+                    <h2 className={isH1 ? 'sb-heading-1' : 'sb-heading-2'} style={{ color: 'var(--text-primary)', margin: 0, maxWidth: 330, textWrap: 'pretty' }}>{heading}</h2>
+                  )}
+                  {body && (
+                    <p className="sb-body" style={{ color: 'var(--text-secondary)', margin: 0, maxWidth: 280 }}>{body}</p>
+                  )}
+                </motion.div>
+              </AnimatePresence>
               </div>
             )}
 

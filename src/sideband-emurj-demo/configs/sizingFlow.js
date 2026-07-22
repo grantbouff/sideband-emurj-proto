@@ -9,6 +9,12 @@ export const sizingSteps = [
   {
     type: 'binary',
     heading: 'Did you find the sizing info you needed?',
+    // Post-rating feedback: swapped in for the question (bottom-bar
+    // treatment) and held for a beat before the flow advances.
+    responses: {
+      positive: 'Awesome! We love to hear that.',
+      negative: 'Oh sorry about that. Let’s fix that.',
+    },
   },
   {
     branch: {
