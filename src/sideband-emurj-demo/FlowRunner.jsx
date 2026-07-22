@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import TriggerFAB from './components/TriggerFAB'
 import BottomBar from './components/BottomBar'
 import Sheet from './components/Sheet'
@@ -117,8 +117,16 @@ export default function FlowRunner({ config }) {
         if (multi) setAnswer(key, sel.includes(v) ? sel.filter((x) => x !== v) : [...sel, v])
         else setAnswer(key, v)
       }
-      const canNext = multi ? sel.length > 0 : sel != null
-      const isVerbose = (step.styleVariant || 'concise') === 'verbose'
+      // Figma caps the concise chip at 15 chars / 1 line; longer labels wrap
+      // to two lines and look cramped in the pill. When a multi-option step
+      // has any label over that budget, promote the whole step to the verbose
+      // chip (full-width, left-aligned). Explicit step.styleVariant still wins.
+      const CONCISE_MAX_CHARS = 15
+      const chipOptions = step.options.filter((o) => o.type !== 'other')
+      const autoVerbose = chipOptions.length > 1 &&
+        chipOptions.some((o) => (o.label?.length ?? 0) > CONCISE_MAX_CHARS)
+      const styleVariant = step.styleVariant || (autoVerbose ? 'verbose' : 'concise')
+      const isVerbose = styleVariant === 'verbose'
       // Fixed-width columns so a lone chip on the last row keeps its size
       // instead of stretching across the grid.
       slot = (
@@ -136,7 +144,7 @@ export default function FlowRunner({ config }) {
               key={opt.value}
               label={opt.type === 'other' ? 'Other…' : opt.label}
               type={opt.type || 'chip'}
-              styleVariant={step.styleVariant || 'concise'}
+              styleVariant={styleVariant}
               active={isActive(opt.value)}
               // 'other' is a divert, not a toggle: record it and move on to
               // the long-form text step.
@@ -149,7 +157,8 @@ export default function FlowRunner({ config }) {
           ))}
         </div>
       )
-      footer = <Button level="primary" styleVariant="compact" icon onClick={advance} disabled={!canNext} />
+      // Always enabled — answering is optional, Next doubles as skip.
+      footer = <Button level="primary" styleVariant="compact" icon onClick={advance} />
     } else if (step.type === 'text') {
       const key = `text-${stepIndex}`
       slot = (
@@ -167,6 +176,13 @@ export default function FlowRunner({ config }) {
     }
   }
 
+  // Map the step to the Figma Sheet Type variant: the opening binary rating is
+  // the Start sheet (no progress track), the thank-you is End, questions are
+  // In-Progress.
+  const sheetVariant = step
+    ? (step.type === 'binary' ? 'start' : step.type === 'end' ? 'end' : 'in-progress')
+    : 'in-progress'
+
   return (
     <>
       {/* Entry subtree — its own theme. */}
@@ -180,7 +196,9 @@ export default function FlowRunner({ config }) {
           {showSheet && (
             <Sheet
               key="sheet"
+              variant={sheetVariant}
               progress={progress}
+              stepKey={stepIndex}
               eyebrow={step.eyebrow}
               heading={step.heading}
               body={step.body}
@@ -188,21 +206,8 @@ export default function FlowRunner({ config }) {
               footer={footer}
               onClose={close}
               slideIn={entryType === 'sheet'}
-              showHeader={step.type !== 'end'}
-              headingLevel={step.type === 'end' ? 'h1' : 'h2'}
-              footerVariant={step.type === 'end' ? 'inline' : 'standard'}
             >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={stepIndex}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {slot}
-                </motion.div>
-              </AnimatePresence>
+              {slot}
             </Sheet>
           )}
         </AnimatePresence>

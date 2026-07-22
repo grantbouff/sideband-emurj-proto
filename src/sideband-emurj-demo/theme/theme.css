@@ -65,7 +65,7 @@
   --c-button-text-primary-inverted: var(--neutral-99);
   --c-button-text-secondary: var(--neutral-99);
   --c-button-text-tertiary: var(--neutral-99);
-  --c-button-surface-primary: var(--neutral-80);
+  --c-button-surface-primary: var(--neutral-99);
   --c-button-surface-primary-border: rgba(255, 255, 255, 0.15);
   --c-button-surface-secondary: var(--neutral-20);
   --c-button-surface-ghosted-border: var(--neutral-30);
@@ -153,7 +153,7 @@
   --c-button-text-primary-inverted: var(--neutral-00);
   --c-button-text-secondary: var(--neutral-10);
   --c-button-text-tertiary: var(--neutral-10);
-  --c-button-surface-primary: var(--neutral-00);
+  --c-button-surface-primary: var(--brand-primary);
   --c-button-surface-primary-border: rgba(0, 0, 0, 0.07);
   --c-button-surface-secondary: var(--neutral-75);
   --c-button-surface-ghosted-border: var(--neutral-60);
@@ -197,7 +197,7 @@
   --c-button-text-primary-inverted: var(--neutral-00);
   --c-button-text-secondary: var(--neutral-00);
   --c-button-text-tertiary: var(--neutral-00);
-  --c-button-surface-primary: var(--neutral-20);
+  --c-button-surface-primary: var(--brand-primary);
   --c-button-surface-primary-border: rgba(0, 0, 0, 0.07);
   --c-button-surface-secondary: var(--neutral-85);
   --c-button-surface-ghosted-border: var(--neutral-65);

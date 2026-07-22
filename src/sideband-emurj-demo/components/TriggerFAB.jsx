@@ -4,9 +4,9 @@ import { EmurjAvatar, CloseIcon } from './icons'
 
 // Geometry, per Figma. COLLAPSED is the circle phase: 60 wide, 60 tall.
 const COLLAPSED = 60
-const PAD_LEFT = 14
-const AVATAR = 32
-const GAP = 12
+const PAD_LEFT = 10
+const AVATAR = 40
+const GAP = 10
 
 /* Motion from the Figma "Trigger FAB" timeline (node 3247:7309). That comp is a
  * 10s loop, so only the curves and the offsets *within* entry/exit are taken
@@ -17,8 +17,17 @@ const EASE_COLLAPSE = [0.678, 0.17, 0.696, 0.998] // width collapse on exit
 const EASE_FADE = [0.5, 0, 0.5, 1] // label in/out
 const EASE_AVATAR_OUT = [0.5, 0, 1, 0.6]
 const EASE_GROUP_OUT = [0.362, 0.095, 0.497, 0.933]
+// Hairline track grow-in, from the hairline comp (node 3579:3082).
+const EASE_TIMER_IN = [0.65, 0.06, 0.207, 0.986]
+// X badge pop-in, from the dismiss comp (node 3655:18908).
+const EASE_CLOSE_IN = [0, 0.6, 0, 1]
 
 const EXPAND = 0.893
+
+// Same shadow, alpha 0 — keeping every other component identical lets framer
+// tween it as a pure opacity fade instead of interpolating geometry.
+const SHADOW = '0 4px 32px rgba(0,0,0,0.16)'
+const SHADOW_NONE = '0 4px 32px rgba(0,0,0,0)'
 
 // Seconds, rebased so the FAB's own scale-in starts at 0 (the comp's 0.26s lead
 // is `startDelay` here).
@@ -38,6 +47,16 @@ const T = {
   // is still growing, and the two motions fight.
   drainDelay: 1.0,
   collapse: 0.292,
+  // Hairline track entry, per the hairline comp (3579:3082): it trails the
+  // expansion by 0.114s and grows left→right while the pill is still
+  // widening, finishing at +0.894 — inside drainDelay's 1.0s, so the drain
+  // never starts on a half-grown track.
+  timerIn: 0.78, timerInDelay: 0.114, timerFadeIn: 0.587,
+  // X badge pop, per the dismiss comp (3655:18908): it enters 0.442s after the
+  // expansion starts — the moment the comp's label fade completes — so its
+  // 0.497s pop lands right as the width settles. Delay is from `expanded`,
+  // not entry, to keep that anchoring.
+  closeIn: 0.497, closeInDelay: 0.442,
   labelOut: 0.39,
   avatarOut: 0.298, avatarOutDelay: 0.098,
   groupOut: 0.39, groupOutDelay: 0.167,
@@ -45,7 +64,7 @@ const T = {
 const EXIT_MS = (T.groupOutDelay + T.groupOut) * 1000
 
 /* TriggerFAB — the pill entry point. Geometry from Figma "Trigger FAB"
- * (node 3435:22433): height 60, pad-left 14, gap 12, radius 1000, 32px avatar,
+ * (node 3435:22433): height 60, pad-left 10, gap 10, radius 1000, 40px avatar,
  * label Inter SemiBold 14/100%. Pad-right is 24 untimed, 28 when timed.
  * Colour via c-fab-* tokens.
  *
@@ -64,7 +83,7 @@ const EXIT_MS = (T.groupOutDelay + T.groupOut) * 1000
  * timer:
  *   'none'       — static pill; dismiss via the X badge.
  *   'background' — the surface drains left→right off a ghosted underlay.
- *   'hairline'   — 2px brand hairline drains over a 25% track, under the label.
+ *   'hairline'   — 2px brand hairline drains over a 15% track, under the label.
  *
  * Both timers are the same left-origin scaleX drain, so they share `drain`.
  *
@@ -141,33 +160,50 @@ export default function TriggerFAB({
       transition={{ duration: T.groupOut, delay: T.groupOutDelay, ease: EASE_GROUP_OUT }}
       style={{
         position: 'fixed', bottom: 32, left: 20, zIndex: 50,
-        pointerEvents: 'auto', transformOrigin: 'left bottom',
+        pointerEvents: 'auto',
+        // Exit anchor, per the motion comp (node 3379:8284): the width collapse
+        // condenses the pill leftward (a width tween on a left-anchored box —
+        // no transform, so no origin applies), then the group scale shrinks
+        // what's left — the 60px circle — into the avatar's own center, 30px in
+        // (pad 10 + 40px avatar / 2) and mid-height. Pinning the origin there
+        // makes the left-anchored condense hand off to a logo-centered
+        // scale-down with no origin jump; the comp fakes this with a wrapper
+        // div scaled about its (post-collapse) center.
+        transformOrigin: `${PAD_LEFT + AVATAR / 2}px 50%`,
       }}
     >
       <motion.button
         layoutId="fab-surface"
         onClick={onOpen}
-        initial={{ scale: 0, width: COLLAPSED }}
+        initial={{ scale: 0, width: COLLAPSED, boxShadow: SHADOW }}
         animate={{
           scale: entered ? 1 : 0,
           width: expanded && fullWidth ? fullWidth : COLLAPSED,
+          // The shadow fades over the whole exit rather than riding the
+          // scale to 0 — a full-strength shadow on a shrinking circle reads
+          // as a dark blob chasing the logo out.
+          boxShadow: exiting ? SHADOW_NONE : SHADOW,
         }}
         transition={{
           scale: { duration: T.scaleIn, ease: EASE_ENTER },
           width: exiting
             ? { duration: T.collapse, ease: EASE_COLLAPSE }
             : { duration: T.expand, ease: EASE_ENTER },
+          boxShadow: { duration: T.groupOutDelay + T.groupOut, ease: EASE_FADE },
         }}
         style={{
           position: 'relative',
           display: 'flex', alignItems: 'center', gap: GAP,
           height: 60, paddingLeft: PAD_LEFT, paddingRight: padRight,
-          borderRadius: 1000,
+          // 30, not 1000: for a 60-high box they render identically (radius
+          // clamps at half-height), but the layoutId morph tweens the
+          // *declared* value to the Sheet's 32 — from 1000 the corners stay
+          // capsule-clamped for most of the morph, then snap. 30→32 is clean.
+          borderRadius: COLLAPSED / 2,
           // Always opaque — the ghosted fill is a translucent overlay on top of
           // this, never the pill's own background.
           background: 'var(--c-fab-surface)',
           border: '1px solid var(--c-fab-border)',
-          boxShadow: '0 4px 32px rgba(0,0,0,0.16)',
           cursor: 'pointer', overflow: 'hidden',
         }}
       >
@@ -202,7 +238,7 @@ export default function TriggerFAB({
             : { duration: T.avatarIn, delay: T.avatarInDelay, ease: EASE_ENTER }}
           style={{ position: 'relative', display: 'flex', flexShrink: 0 }}
         >
-          <EmurjAvatar size={32} />
+          <EmurjAvatar size={40} />
         </motion.span>
 
         {/* Label wrapper is the hairline's track width — Figma scopes the timer
@@ -233,11 +269,22 @@ export default function TriggerFAB({
           </span>
 
           {timer === 'hairline' && showTimer && (
-            <span
+            // Track + full fill grow in together as one unit — the comp's
+            // "Timer" node: scaleX 0→1 from the left edge with its own ease,
+            // opacity fading in over a shorter span. Mounts at `expanded`, so
+            // the delay is measured from the start of the pill's expansion.
+            <motion.span
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ scaleX: 1, opacity: 1 }}
+              transition={{
+                scaleX: { duration: T.timerIn, delay: T.timerInDelay, ease: EASE_TIMER_IN },
+                opacity: { duration: T.timerFadeIn, delay: T.timerInDelay, ease: EASE_FADE },
+              }}
               style={{
                 position: 'absolute', left: 0, right: 0, top: 42, height: 2,
                 borderRadius: 1000, overflow: 'hidden',
-                background: 'color-mix(in srgb, var(--c-fab-text) 25%, transparent)',
+                transformOrigin: 'left',
+                background: 'color-mix(in srgb, var(--c-fab-text) 15%, transparent)',
               }}
             >
               <motion.span
@@ -249,28 +296,37 @@ export default function TriggerFAB({
                   background: 'var(--c-fab-hairline-timer-fill)',
                 }}
               />
-            </span>
+            </motion.span>
           )}
         </motion.span>
       </motion.button>
 
-      {/* X dismiss badge — the untimed variant's only way out. */}
+      {/* X dismiss badge — the untimed variant's only way out. Per the refined
+       * spec it tucks into the pill's top-right corner (top 0, right 2): an
+       * 18px disc — 14px glyph in 2px padding — filled with c-fab-text, no
+       * border. */}
       {timer === 'none' && (
         <motion.button
-          initial={{ opacity: 0, scale: 0.6 }}
-          animate={{ opacity: entered ? 1 : 0, scale: entered ? 1 : 0.6 }}
-          transition={{ duration: 0.2, delay: 0.25 }}
+          // Pure scale pop from 0 (no opacity track in the comp), gated on
+          // `expanded` — the badge belongs to the pill phase, not the circle.
+          // On exit it ducks out fast and ungated so no stray X rides the
+          // width collapse.
+          initial={{ scale: 0 }}
+          animate={{ scale: expanded && !exiting ? 1 : 0 }}
+          transition={exiting
+            ? { duration: 0.2, ease: EASE_FADE }
+            : { duration: T.closeIn, delay: T.closeInDelay, ease: EASE_CLOSE_IN }}
           onClick={(e) => { e.stopPropagation(); dismiss() }}
           style={{
-            position: 'absolute', top: -8, right: -8,
-            width: 22, height: 22, borderRadius: '50%',
-            background: 'var(--c-button-surface-primary)',
-            border: '1.5px solid var(--surface-base)',
+            position: 'absolute', top: 0, right: 2,
+            width: 18, height: 18, borderRadius: '50%',
+            background: 'var(--c-fab-text)',
+            border: 'none',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', pointerEvents: 'auto', padding: 0,
+            cursor: 'pointer', pointerEvents: 'auto', padding: 2,
           }}
         >
-          <CloseIcon size={12} color="var(--c-button-text-primary)" />
+          <CloseIcon size={14} color="var(--c-fab-surface)" />
         </motion.button>
       )}
     </motion.div>

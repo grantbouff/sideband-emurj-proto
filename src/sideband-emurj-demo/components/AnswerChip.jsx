@@ -42,7 +42,7 @@ export default function AnswerChip({
         width: '100%',
         minWidth: isVerbose ? 180 : undefined,
         boxSizing: 'border-box',
-        padding: isOther ? '16px' : (isVerbose ? '16px 22px' : '16px 8px'),
+        padding: isVerbose ? '16px 22px' : (isOther ? '16px' : '16px 8px'),
         borderRadius: isVerbose ? 16 : 80,
         background: surface,
         color,
@@ -55,7 +55,7 @@ export default function AnswerChip({
     >
       <span style={{
         flex: '1 0 0',
-        textAlign: isVerbose && !isOther ? 'left' : 'center',
+        textAlign: isVerbose ? 'left' : 'center',
         opacity: isOther ? 0.4 : 1,
       }}>
         {label}

@@ -45,6 +45,7 @@ export default function TextField({
   }
 
   return multiline
-    ? <textarea {...commonProps} rows={rows} style={{ ...base, resize: 'none' }} />
+    // 144 min height per the Figma Text Field (Verbose) spec.
+    ? <textarea {...commonProps} rows={rows} style={{ ...base, resize: 'none', minHeight: 144 }} />
     : <input type="text" {...commonProps} style={base} />
 }
