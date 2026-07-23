@@ -17,8 +17,8 @@ export default {
   steps: [
     {
       type: 'binary',
-      eyebrow: 'Regarding your results',
-      heading: 'Do the current filters give you the control you want?',
+      eyebrow: 'Quick question…',
+      heading: 'Are the filters helpful?',
       description: '',
       // Post-rating feedback, held before advancing — mirrors the branch tone.
       responses: {

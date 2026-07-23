@@ -115,7 +115,11 @@ export default function Sheet({
         display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-start',
         padding: '0 0 24px 20px',
         background: isWide ? 'transparent' : 'var(--shade-default)',
-        pointerEvents: 'auto',
+        // Wide: no scrim, so the sheet is non-modal — the backdrop passes
+        // wheel/touch/clicks through to the page (the surface opts back in
+        // below). Narrow keeps the dimmed modal: scrim catches events and a
+        // tap on it closes.
+        pointerEvents: isWide ? 'none' : 'auto',
       }}
     >
       <motion.div
@@ -137,6 +141,8 @@ export default function Sheet({
           boxShadow: '0 8px 48px rgba(0,0,0,0.24)',
           overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
+          pointerEvents: 'auto', // opt back in when the backdrop is pass-through
+
         }}
       >
         {/* Cross-theme morph handoff: the surface starts as the entry theme's

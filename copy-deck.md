@@ -3,7 +3,7 @@
 > **Source of truth now lives in Notion:**
 > https://app.notion.com/p/cmd-k/SideBand-EMURJ-copy-deck-3a6463d6eeb380ecb1acf6640663081c
 > This file matches the implemented flow configs as of 2026-07-23. Edit in Notion, then ask to re-sync.
-> Known drift from Notion: Flow 1 Step 3 (Notion has eyebrow "One last thing" and "…you'd like to share…") and the Bottom bar demo label (Notion says "Checkout-experience flow").
+> Known drift from Notion: Flow 1 Step 3 (Notion has eyebrow "One last thing" and "…you'd like to share…"), the Bottom bar demo label (Notion says "Checkout-experience flow"), and Flow 3 Step 1 (Notion has eyebrow "Regarding your results" / heading "Do the current filters give you the control you want?").
 
 **Field guide**
 - **Eyebrow** — small label above the heading (optional)
@@ -75,8 +75,8 @@
 *Opens directly on load — no entry point.*
 
 ### Step 1 — Rating (thumbs, in the sheet)
-- Eyebrow: Regarding your results
-- Heading: Do the current filters give you the control you want?
+- Eyebrow: Quick question…
+- Heading: Are the filters helpful?
 - Description: —
 - Response after 👍: Nice! Glad you found it.
 - Response after 👎: Oh sorry about that. Let's fix that.

@@ -25,7 +25,7 @@
   --text-on-highlight: var(--neutral-00);
   --text-brand: var(--brand-primary);
   --surface-highlight: var(--brand-primary);
-  --c-fab-hairline-timer-fill: var(--brand-primary);
+  --c-fab-hairline-timer-fill: #000000;
 
   --element-error-accent-01: #FFDEDF;
   --element-error-accent-02: #D00000;

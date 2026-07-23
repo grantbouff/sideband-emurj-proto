@@ -49,21 +49,21 @@ export default function DemoIndex() {
   return (
     <div style={{ maxWidth: 1080, margin: '0 auto', padding: '80px 32px' }}>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 32, fontWeight: 600, color: '#fff', margin: '0 0 4px 0', fontFamily: 'Inter, sans-serif' }}>
-          SideBand Emurj Demo
+        <h1 style={{ fontSize: 32, fontWeight: 600, color: '#fff', margin: 0, fontFamily: 'Inter, sans-serif' }}>
+          Sideband / EMURJ
         </h1>
-        <p style={{ fontSize: 14, color: '#555', margin: '0 0 8px 0', fontFamily: 'Inter, sans-serif' }}>
-          Five themed prototypes over the SideBand token system
-        </p>
-        <Link to="/fab-prototypes" style={{ fontSize: 13, color: '#666', fontFamily: 'Inter, sans-serif' }}>
-          FAB Prototypes →
-        </Link>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 8 }}>
         {CONFIGS.map((config) => (
           <PrototypeCard key={config.id} config={config} />
         ))}
+      </div>
+
+      <div style={{ marginTop: 24 }}>
+        <Link to="/fab-prototypes" style={{ fontSize: 13, color: '#666', fontFamily: 'Inter, sans-serif' }}>
+          Archived Prototypes →
+        </Link>
       </div>
     </div>
   )
