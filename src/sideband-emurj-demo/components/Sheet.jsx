@@ -98,8 +98,10 @@ export default function Sheet({
   const showProgress = variant === 'in-progress'
   const isH1 = variant === 'interstitial' || variant === 'end'
   const inlineFooter = variant === 'end'
+  // Text Content (Figma 770:2689): pt 2 / px 8 / pb 16 — the 16 is the full
+  // gap down to the input slot, which carries no top padding of its own.
   // Interstitial gives its lone heading more breathing room.
-  const textPadding = variant === 'interstitial' ? '20px 12px 24px' : '2px 12px 16px'
+  const textPadding = variant === 'interstitial' ? '20px 8px 24px' : '2px 8px 16px'
 
   return (
     <motion.div
@@ -213,8 +215,10 @@ export default function Sheet({
             </div>
           )}
 
-          {/* Step content — text, input, and footer crossfade as one block per
-              step. popLayout drops the exiting block out of flow immediately,
+          {/* Step content — text and input crossfade as one block per step
+              (plus the inline End footer; the standard footer is pinned below,
+              outside this subtree, so the Next bar holds still between steps).
+              popLayout drops the exiting block out of flow immediately,
               so the measured height only ever tracks the incoming step. */}
           <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
@@ -281,11 +285,18 @@ export default function Sheet({
                     boxSizing: 'border-box', transformOrigin: '50% 235%',
                   }}
                 >
-                  {eyebrow && (
-                    <p className="sb-eyebrow" style={{ color: 'var(--text-tertiary)', margin: 0 }}>{eyebrow}</p>
-                  )}
-                  {heading && (
-                    <h2 className={isH1 ? 'sb-heading-1' : 'sb-heading-2'} style={{ color: 'var(--text-primary)', margin: 0, maxWidth: 330, textWrap: 'pretty' }}>{heading}</h2>
+                  {/* Eyebrow + heading are one tight group (Figma 3750:20463,
+                      gap 4); the outer gap 8 separates that group from the
+                      body copy. */}
+                  {(eyebrow || heading) && (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, width: '100%' }}>
+                      {eyebrow && (
+                        <p className="sb-eyebrow" style={{ color: 'var(--text-tertiary)', margin: 0 }}>{eyebrow}</p>
+                      )}
+                      {heading && (
+                        <h2 className={isH1 ? 'sb-heading-1' : 'sb-heading-2'} style={{ color: 'var(--text-primary)', margin: 0, maxWidth: 330, textWrap: 'pretty' }}>{heading}</h2>
+                      )}
+                    </div>
                   )}
                   {body && (
                     <p className="sb-body" style={{ color: 'var(--text-secondary)', margin: 0, maxWidth: 280 }}>{body}</p>
@@ -300,16 +311,14 @@ export default function Sheet({
             )}
           </div>
 
-          {/* Footer — standard: hairline top, gap 16; inline (End): borderless,
-              gap 8, buttons share the width. */}
-          {footer && (
+          {/* Inline footer (End only) — borderless, gap 8, buttons share the
+              width. Part of the step content, so it crossfades with the
+              thank-you block. The standard footer lives outside this subtree —
+              see below — so it holds still while steps change. */}
+          {footer && inlineFooter && (
             <div style={{
               padding: '18px 20px', display: 'flex', justifyContent: 'flex-end',
-              alignItems: inlineFooter ? 'stretch' : 'center',
-              gap: inlineFooter ? 8 : 16,
-              borderTop: inlineFooter
-                ? 'none'
-                : '1px solid var(--c-button-surface-ghosted-border)',
+              alignItems: 'stretch', gap: 8,
             }}>
               {footer}
             </div>
@@ -318,6 +327,45 @@ export default function Sheet({
           </AnimatePresence>
         </motion.div>
         </motion.div>
+
+        {/* Standard footer — pinned outside the height tween and the step
+            crossfade. The sheet is bottom-anchored, so with the footer down
+            here its screen position never moves between steps: the height
+            tween above slides the content while the Next bar stays fixed.
+            Its own enter/exit collapses the row's height with the same curve
+            as the content tween, so appearing (start → first question) and
+            leaving (question → end) read as one continuous resize.
+            initial={false}: when the sheet mounts already footered (the
+            bottom-bar flow), the row is simply part of the morph target. */}
+        <AnimatePresence initial={false}>
+          {footer && !inlineFooter && (
+            <motion.div
+              key="footer"
+              // Same scale correction as the content wrapper — during the
+              // layoutId morph the surface scale-animates, and without this
+              // the button would stretch with it.
+              layout="position"
+              initial={{ height: 0 }}
+              animate={{ height: 'auto' }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.45, ease: [0.65, 0, 0.35, 1] }}
+              style={{ overflow: 'hidden', flexShrink: 0 }}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: [0, 0.55, 0.45, 1], delay: enterDelay + 0.12 }}
+                style={{
+                  padding: '18px 20px', display: 'flex', justifyContent: 'flex-end',
+                  alignItems: 'center', gap: 16,
+                  borderTop: '1px solid var(--c-button-surface-ghosted-border)',
+                }}
+              >
+                {footer}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </motion.div>
   )

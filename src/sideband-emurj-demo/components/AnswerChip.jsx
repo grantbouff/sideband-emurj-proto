@@ -53,25 +53,31 @@ export default function AnswerChip({
         transition: 'background 0.12s ease, color 0.12s ease',
       }}
     >
-      <span style={{
-        flex: '1 0 0',
-        textAlign: isVerbose ? 'left' : 'center',
-        opacity: isOther ? 0.4 : 1,
-      }}>
-        {label}
-      </span>
-
-      {/* Input caret — sits just left of the placeholder, as drawn. */}
-      {isOther && (
+      {isOther ? (
+        // Caret + placeholder flow together so the rule sits just left of the
+        // text without overlapping it, whatever width the chip lands at.
         <span style={{
-          position: 'absolute',
-          left: isVerbose ? 20 : 50,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          width: 1,
-          height: 22,
-          background: 'var(--text-primary)',
-        }} />
+          flex: '1 0 0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: isVerbose ? 'flex-start' : 'center',
+          gap: 3,
+        }}>
+          <span style={{
+            flex: 'none',
+            width: 1,
+            height: 22,
+            background: 'var(--text-primary)',
+          }} />
+          <span style={{ opacity: 0.4 }}>{label}</span>
+        </span>
+      ) : (
+        <span style={{
+          flex: '1 0 0',
+          textAlign: isVerbose ? 'left' : 'center',
+        }}>
+          {label}
+        </span>
       )}
     </button>
   )

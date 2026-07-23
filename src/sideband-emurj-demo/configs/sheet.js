@@ -1,22 +1,25 @@
 /* Sheet prototype — filters/search flow. Direct sheet: opens on load, no entry
  * point. binary step is the first sheet step.
  *
- * COPY STATUS: authored to match the SideBand `Pulses` flow pattern. Transcribe
- * against Figma `Sheet` (section `Pulses`). NOTE: the negative branch is NOT
- * drawn in Figma — it is authored here to mirror the positive branch and the
- * other two flows. FLAG FOR DESIGN REVIEW.
+ * Every step supports optional `eyebrow` (small label above the heading) and
+ * `description` (supporting copy below the heading). Leave as '' to omit.
+ *
+ * COPY STATUS: synced from the Notion copy deck (SideBand × EMURJ — copy deck),
+ * 2026-07-23. The negative branch remains authored (not drawn in Figma).
  */
 export default {
   id: 'sheet',
   title: 'Sheet',
-  page: 'home',
+  page: 'search',
   description: 'Sheet that opens directly (no entry point). Search/filters flow.',
   entry: { type: 'sheet' },
   theming: { fab: { theme: 'lighter' }, modal: { theme: 'lighter' } },
   steps: [
     {
       type: 'binary',
-      heading: 'Did you find what you were looking for?',
+      eyebrow: 'Regarding your results',
+      heading: 'Do the current filters give you the control you want?',
+      description: '',
       // Post-rating feedback, held before advancing — mirrors the branch tone.
       responses: {
         positive: 'Nice! Glad you found it.',
@@ -28,35 +31,62 @@ export default {
         positive: [
           {
             type: 'chips',
-            heading: 'Nice! Glad you found it.',
-            body: 'What helped you get there?',
+            eyebrow: '',
+            heading: 'How important is price when searching for pieces?',
+            description: 'Choose based on your list common scenario',
             options: [
-              { label: 'Filters', value: 'filters' },
-              { label: 'Search', value: 'search' },
-              { label: 'Categories', value: 'categories' },
-              { label: 'Recommendations', value: 'recommendations' },
-              { label: 'Something else', value: 'other', type: 'other' },
+              { label: 'It’s Essential', value: 'essential' },
+              { label: 'Moderately', value: 'moderately' },
+              { label: 'Not Very', value: 'not-very' },
+              { label: 'Other', value: 'other', type: 'other' },
             ],
+            // `Other` diverts into this freeform step (same design as the
+            // closing text sheet), then the flow continues as usual.
+            otherStep: {
+              eyebrow: '',
+              heading: 'Tell us in your own words',
+              description: 'How does price factor into your search?',
+              placeholder: 'Type whatever you like…',
+            },
           },
         ],
-        // Authored to match the pattern — not present in Figma. FLAG FOR REVIEW.
+        // Authored to match the pattern — not present in Figma.
         negative: [
           {
             type: 'chips',
-            heading: 'Let’s improve that.',
-            body: 'What made it hard to find?',
+            eyebrow: 'Let’s improve that.',
+            heading: 'What was missing from the filters?',
+            description: '',
             options: [
-              { label: 'Not enough filters', value: 'few-filters' },
-              { label: 'Search didn’t work', value: 'bad-search' },
-              { label: 'Too many results', value: 'too-many' },
-              { label: 'Couldn’t refine', value: 'no-refine' },
+              { label: 'Specific categories', value: 'categories' },
+              { label: 'Better price ranges', value: 'price-ranges' },
+              { label: 'Style filters', value: 'style-filters' },
+              { label: 'Availability filters', value: 'availability' },
               { label: 'Something else', value: 'other', type: 'other' },
             ],
+            otherStep: {
+              eyebrow: '',
+              heading: 'Tell us in your own words',
+              description: 'What was missing for you?',
+              placeholder: 'Type whatever you like…',
+            },
           },
         ],
       },
     },
-    { type: 'text', heading: 'Anything else you’d like to share with the team?', placeholder: 'Your feedback (optional)…' },
-    { type: 'end', heading: 'Thank you', body: 'Your feedback helps us improve search.', media: 'checkmark' },
+    {
+      type: 'text',
+      eyebrow: '',
+      heading: 'Any other controls you would find useful when searching?',
+      description: '',
+      placeholder: 'Your feedback (optional)…',
+    },
+    {
+      type: 'end',
+      eyebrow: '',
+      heading: 'Thank you',
+      description: 'We appreciate you taking the time to improve the experience.',
+      media: 'checkmark',
+    },
   ],
 }

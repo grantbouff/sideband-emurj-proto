@@ -7,6 +7,7 @@ const BASE = import.meta.env.BASE_URL
 const PAGE_URLS = {
   home: `${BASE}pages/home.html`,
   'product-detail': `${BASE}pages/product-detail.html`,
+  search: `${BASE}pages/search.html`,
 }
 
 /* DemoPage — iframe background (reusing the real Emurj pages) + a FlowRunner
@@ -33,7 +34,16 @@ export default function DemoPage() {
       <iframe
         src={bgUrl}
         title="Background page"
-        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none', pointerEvents: 'none' }}
+        // Scrollable but inert: same-origin, so we can swallow clicks inside
+        // the document while leaving native wheel/touch scrolling alone.
+        onLoad={(e) => {
+          const doc = e.target.contentDocument
+          if (!doc) return
+          for (const type of ['click', 'auxclick', 'submit']) {
+            doc.addEventListener(type, (ev) => { ev.preventDefault(); ev.stopPropagation() }, true)
+          }
+        }}
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
       />
       <div
         style={{

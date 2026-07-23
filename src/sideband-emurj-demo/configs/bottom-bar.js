@@ -1,63 +1,29 @@
-/* Bottom-bar prototype — payments/checkout flow.
- * The bottom bar's thumbs ARE the binary rating: on rate we set sentiment and
- * skip steps[0] (the binary step, kept for shared-shape consistency).
+/* Bottom-bar prototype — payment-methods flow.
+ * The bottom bar's thumbs ARE the binary rating, and the bar is terminal
+ * (Figma 3603:19663 / 3603:19715): rating swaps the question for a response
+ * and the bar closes itself on `ratedTimer`. No sheet follows — steps holds
+ * only the shape-consistent binary step.
  *
- * COPY STATUS: authored to match the SideBand `Pulses` flow pattern. Transcribe
- * against Figma `Bottom Bar` (section `Pulses`) and adjust — FLAG FOR REVIEW.
+ * COPY STATUS: synced from the Notion copy deck (SideBand × EMURJ — copy deck),
+ * 2026-07-23.
  */
 export default {
   id: 'bottom-bar',
   title: 'Bottom bar',
   page: 'product-detail',
-  description: 'Full-width bottom bar with inline thumbs. Checkout-experience flow.',
+  description: 'Full-width bottom bar with inline thumbs. Payment-methods flow.',
   entry: {
     type: 'bottom-bar',
-    cta: 'How was your checkout experience?',
+    cta: 'What do you think of the available payment methods?',
     dismissTimer: 12,
-    // The bar is terminal (Figma 3603:19663 / 3603:19715): rating swaps the
-    // question for one of these and the bar closes itself on `ratedTimer`.
     responses: {
-      positive: 'Great to hear that!',
-      negative: 'Sorry to hear that.',
+      positive: 'Great! Thanks for letting us know.',
+      negative: 'Thanks. We’ll work on that',
     },
     ratedTimer: 3,
   },
   theming: { fab: { theme: 'lighter' }, modal: { theme: 'lighter' } },
   steps: [
-    { type: 'binary', heading: 'How was your checkout experience?' },
-    {
-      branch: {
-        positive: [
-          {
-            type: 'chips',
-            heading: 'Great to hear!',
-            body: 'What went smoothly?',
-            options: [
-              { label: 'Fast', value: 'fast' },
-              { label: 'Easy to enter details', value: 'easy-details' },
-              { label: 'Trusted the process', value: 'trusted' },
-              { label: 'Saved payment worked', value: 'saved-payment' },
-              { label: 'Something else', value: 'other', type: 'other' },
-            ],
-          },
-        ],
-        negative: [
-          {
-            type: 'chips',
-            heading: 'Sorry to hear that.',
-            body: 'What went wrong?',
-            options: [
-              { label: 'Payment declined', value: 'declined' },
-              { label: 'Too many steps', value: 'too-many-steps' },
-              { label: 'Confusing form', value: 'confusing' },
-              { label: 'Too slow', value: 'slow' },
-              { label: 'Something else', value: 'other', type: 'other' },
-            ],
-          },
-        ],
-      },
-    },
-    { type: 'text', heading: 'Anything else you’d like to share with the team?', placeholder: 'Your feedback (optional)…' },
-    { type: 'end', heading: 'Thank you', body: 'Your feedback helps us improve checkout.', media: 'checkmark' },
+    { type: 'binary', eyebrow: '', heading: 'What do you think of the available payment methods?', description: '' },
   ],
 }

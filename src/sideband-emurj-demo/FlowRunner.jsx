@@ -30,7 +30,10 @@ const START_DELAY = 1500
 const RATED_HOLD_MS = 2000
 
 // Flatten config.steps into a concrete list, expanding the branch step.
-function resolveSteps(steps, sentiment) {
+// `inserted` is a runtime divert ({ after, step }) — e.g. the chips step's
+// optional `otherStep` freeform — spliced in right after the step that
+// triggered it.
+function resolveSteps(steps, sentiment, inserted) {
   const out = []
   for (const step of steps) {
     if (step.branch) {
@@ -40,6 +43,7 @@ function resolveSteps(steps, sentiment) {
       out.push(step)
     }
   }
+  if (inserted) out.splice(inserted.after + 1, 0, inserted.step)
   return out
 }
 
@@ -61,8 +65,13 @@ export default function FlowRunner({ config }) {
   const [sentiment, setSentiment] = useState(null)   // 'positive' | 'negative'
   const [stepIndex, setStepIndex] = useState(0)
   const [answers, setAnswers] = useState({})
+  // Freeform divert taken from a chips step's `Other` — { after, step }.
+  const [insertedStep, setInsertedStep] = useState(null)
 
-  const resolvedSteps = useMemo(() => resolveSteps(config.steps, sentiment), [config.steps, sentiment])
+  const resolvedSteps = useMemo(
+    () => resolveSteps(config.steps, sentiment, insertedStep),
+    [config.steps, sentiment, insertedStep],
+  )
   const step = resolvedSteps[stepIndex]
   const isLast = stepIndex >= resolvedSteps.length - 1
   const progress = (stepIndex + 1) / resolvedSteps.length
@@ -179,12 +188,17 @@ export default function FlowRunner({ config }) {
               type={opt.type || 'chip'}
               styleVariant={styleVariant}
               active={isActive(opt.value)}
-              // 'other' is a divert, not a toggle: record it and move on to
-              // the long-form text step. Single-select picks also advance —
-              // after a beat, so the active chip registers first.
+              // 'other' is a divert, not a toggle: it branches into the step's
+              // `otherStep` freeform (spliced in right after this one), then
+              // the flow continues to the closing text step as usual. Single-
+              // select picks advance after a beat, so the active chip
+              // registers first.
               onToggle={() => {
                 if (opt.type === 'other') {
                   setAnswer(key, opt.value)
+                  if (step.otherStep) {
+                    setInsertedStep({ after: stepIndex, step: { type: 'text', ...step.otherStep } })
+                  }
                   advance()
                 } else if (multi) {
                   toggle(opt.value)
@@ -250,9 +264,10 @@ export default function FlowRunner({ config }) {
               variant={sheetVariant}
               progress={progress}
               stepKey={stepIndex}
-              eyebrow={step.eyebrow}
+              eyebrow={ratedResponse ? undefined : step.eyebrow}
               heading={ratedResponse ?? step.heading}
-              body={ratedResponse ? undefined : step.body}
+              // `description` is the config-facing name; `body` kept as a legacy alias.
+              body={ratedResponse ? undefined : (step.description ?? step.body)}
               // Hold the question's height through the feedback swap — the
               // sheet shouldn't shrink for 2s and grow right back.
               lockHeight={!!ratedResponse}
