@@ -15,8 +15,9 @@ import { CloseIcon } from './icons'
  *   in-progress  header with progress track
  *   interstitial header close-only, H1, text pads 20/24
  *   end          header hidden entirely, H1, inline footer
- * (Figma gives per-variant max widths of 414/620; this demo pins every
- * variant to a fixed 320 instead.)
+ * (Figma gives per-variant max widths of 414/620; this demo pins later
+ * variants to a fixed 320. The Start sheet can open narrower via startWidth
+ * and morph out to 320 on the following steps.)
  */
 export default function Sheet({
   variant = 'in-progress', // 'start' | 'in-progress' | 'interstitial' | 'end'
@@ -33,6 +34,7 @@ export default function Sheet({
   stepKey = 0,  // changes per step; keys the content crossfade
   morphFromTheme = null, // entry theme when the FAB morph crosses themes
   lockHeight = false, // freeze the surface height (the binary rated hold)
+  startWidth = 320, // width of the Start variant; morphs to 320 on later steps
 }) {
   const [isWide, setIsWide] = useState(() => window.innerWidth > 768)
   useEffect(() => {
@@ -98,10 +100,12 @@ export default function Sheet({
   const showProgress = variant === 'in-progress'
   const isH1 = variant === 'interstitial' || variant === 'end'
   const inlineFooter = variant === 'end'
-  // Text Content (Figma 770:2689): pt 2 / px 8 / pb 16 — the 16 is the full
-  // gap down to the input slot, which carries no top padding of its own.
+  // Text Content (Figma 770:2689): pt 2 / px 24 / pb 16 — the 16 is the full
+  // gap down to the input slot, which carries no top padding of its own. The
+  // heading and the answer-chip slot below share a 24 horizontal inset, per
+  // the Figma sheet (node 2452:10230).
   // Interstitial gives its lone heading more breathing room.
-  const textPadding = variant === 'interstitial' ? '20px 8px 24px' : '2px 8px 16px'
+  const textPadding = variant === 'interstitial' ? '20px 24px 24px' : '2px 24px 16px'
 
   return (
     <motion.div
@@ -126,15 +130,23 @@ export default function Sheet({
         layoutId="fab-surface"
         initial={slideIn ? { y: 64, opacity: 0 } : { opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
+        // The thank-you card sinks down as it fades on dismiss (the other
+        // variants leave with the backdrop's plain fade).
+        exit={variant === 'end'
+          ? { y: 48, opacity: 0, transition: { duration: 0.32, ease: [0.4, 0, 1, 1] } }
+          : undefined}
         transition={{ duration: 0.5, delay: enterDelay, ease: [0.16, 1, 0.3, 1] }}
         onClick={(e) => e.stopPropagation()}
         style={{
           position: 'relative',
           boxSizing: 'border-box',
-          // Fixed sheet width — one declared value in every variant, so the
-          // layoutId morph tweens toward a stable target and never re-derives
-          // width mid-flight from min/max constraints.
-          width: 'min(320px, calc(100vw - 40px))',
+          // One declared width per variant. The Start sheet can open narrower
+          // (startWidth) and widen to 320 on later steps: the layoutId element
+          // persists across steps, so framer's layout projection tweens the
+          // width change as part of the same morph the height tween drives.
+          // Every value is a single number (no min/max constraints) so the
+          // morph never re-derives width mid-flight.
+          width: `min(${variant === 'start' ? startWidth : 320}px, calc(100vw - 40px))`,
           borderRadius: 32,
           background: 'var(--surface-base)',
           border: '1px solid var(--surface-primary-border)',
@@ -186,14 +198,16 @@ export default function Sheet({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0, 0.55, 0.45, 1], delay: enterDelay + 0.12 }}
         >
-          {/* Header — 50px band; close at 16/10. Progress track (inset 80/80)
-              only exists on the In-Progress variant. */}
+          {/* Header — 50px band matching Figma (node 2452:10243): close button
+              at top 10 / right 16, progress track centred on the button's
+              vertical midline (y=30). Track sized 184×5 (Figma is 216×6 on its
+              wider 376 sheet). Progress is In-Progress only. */}
           {showHeader && (
             <div style={{ height: 50, position: 'relative', flexShrink: 0 }}>
               {showProgress && (
                 <div style={{
-                  position: 'absolute', left: 80, right: 80, top: 27,
-                  height: 6, borderRadius: 24, overflow: 'hidden',
+                  position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+                  top: 27.5, width: 184, height: 5, borderRadius: 24, overflow: 'hidden',
                   background: 'var(--surface-tertiary)',
                 }}>
                   <div style={{
@@ -213,10 +227,10 @@ export default function Sheet({
                   background: 'var(--c-button-surface-tertiary)',
                   border: 'none', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'var(--text-primary)', pointerEvents: 'auto',
+                  color: 'var(--text-secondary)', pointerEvents: 'auto',
                 }}
               >
-                <CloseIcon size={24} color="var(--text-primary)" />
+                <CloseIcon size={24} color="var(--text-secondary)" />
               </button>
             </div>
           )}
@@ -305,7 +319,7 @@ export default function Sheet({
                     </div>
                   )}
                   {body && (
-                    <p className="sb-body" style={{ color: 'var(--text-secondary)', margin: 0, maxWidth: 280 }}>{body}</p>
+                    <p className="sb-body" style={{ color: 'var(--text-secondary)', margin: 0, maxWidth: 280, textWrap: 'pretty' }}>{body}</p>
                   )}
                 </motion.div>
               </AnimatePresence>
@@ -313,7 +327,7 @@ export default function Sheet({
             )}
 
             {children && (
-              <div style={{ width: '100%', padding: '0 8px 16px', boxSizing: 'border-box' }}>{children}</div>
+              <div style={{ width: '100%', padding: '0 24px 16px', boxSizing: 'border-box' }}>{children}</div>
             )}
           </div>
 

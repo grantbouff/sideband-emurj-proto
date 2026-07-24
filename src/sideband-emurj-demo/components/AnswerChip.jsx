@@ -61,12 +61,15 @@ export default function AnswerChip({
           display: 'flex',
           alignItems: 'center',
           justifyContent: isVerbose ? 'flex-start' : 'center',
-          gap: 3,
+          gap: 1,
         }}>
+          {/* Text-input caret: a thin bar scaled to the 14px placeholder
+              (≈1.2em), so it reads as a cursor sitting just before the text
+              rather than a full-height rule. */}
           <span style={{
             flex: 'none',
-            width: 1,
-            height: 22,
+            width: 1.5,
+            height: '1.2em',
             background: 'var(--text-primary)',
           }} />
           <span style={{ opacity: 0.4 }}>{label}</span>

@@ -10,7 +10,7 @@
 export const sizingSteps = [
   {
     type: 'binary',
-    eyebrow: 'Quick question for you',
+    eyebrow: 'Quick question…',
     heading: 'Did you find the sizing info you needed?',
     description: '',
     // Post-rating feedback: swapped in for the question (bottom-bar
@@ -25,7 +25,7 @@ export const sizingSteps = [
       positive: [
         {
           type: 'chips',
-          eyebrow: 'Great to hear',
+          eyebrow: '',
           heading: 'What made sizing easy to understand?',
           description: '',
           options: [
@@ -70,8 +70,8 @@ export const sizingSteps = [
   {
     type: 'text',
     heading: 'Anything else to share with the team?',
-    description: 'This could be related to product info or any other part of the site.',
-    placeholder: 'Your feedback (optional)…',
+    description: '',
+    placeholder: 'Could be about product info or anything else…',
   },
   {
     type: 'end',

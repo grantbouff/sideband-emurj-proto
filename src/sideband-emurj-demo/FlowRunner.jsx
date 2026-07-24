@@ -29,6 +29,10 @@ const START_DELAY = 1500
 // advances to the next sheet (the bottom bar's rated hold, minus the dismiss).
 const RATED_HOLD_MS = 2000
 
+// How long the closing thank-you sheet stays up before it dismisses itself.
+// Done still dismisses immediately.
+const END_DISMISS_MS = 3500
+
 // Flatten config.steps into a concrete list, expanding the branch step.
 // `inserted` is a runtime divert ({ after, step }) — e.g. the chips step's
 // optional `otherStep` freeform — spliced in right after the step that
@@ -81,6 +85,13 @@ export default function FlowRunner({ config }) {
 
   const close = () => setDismissed(true)
   const advance = () => { if (isLast) close(); else setStepIndex((i) => i + 1) }
+
+  // The thank-you sheet auto-dismisses after a beat; Done can dismiss sooner.
+  useEffect(() => {
+    if (!(showSheet && step?.type === 'end')) return
+    const t = setTimeout(close, END_DISMISS_MS)
+    return () => clearTimeout(t)
+  }, [showSheet, step?.type])
 
   // Auto-advance after a beat so the selection state is visible before the
   // step transition. Guarded so rapid taps can't skip a step.
@@ -227,9 +238,10 @@ export default function FlowRunner({ config }) {
       footer = <Button level="primary" styleVariant="compact" icon onClick={advance} />
     } else if (step.type === 'end') {
       if (step.media === 'checkmark') media = <Checkmark />
-      // Done drains like the background-timer FAB and auto-dismisses at empty.
+      // Plain Done — the sheet auto-dismisses on its own (see END_DISMISS_MS);
+      // Done just lets the user dismiss immediately.
       footer = (
-        <Button level="primary" styleVariant="fill" onClick={close} timer={step.dismissTimer ?? 10}>
+        <Button level="primary" styleVariant="fill" onClick={close}>
           Done
         </Button>
       )
@@ -275,6 +287,9 @@ export default function FlowRunner({ config }) {
               footer={footer}
               onClose={close}
               slideIn={entryType === 'sheet'}
+              // Sheet entry opens narrow on its Start step, then widens to the
+              // standard 320 as it morphs into the questions and thank-you.
+              startWidth={entryType === 'sheet' ? 300 : 320}
               // When the FAB morphs into the sheet across themes, the sheet
               // starts on the FAB's surface colour and snaps to its own —
               // without this the dark pill would pop straight to white.

@@ -54,7 +54,7 @@ export default {
         negative: [
           {
             type: 'chips',
-            eyebrow: 'Let’s improve that.',
+            eyebrow: '',
             heading: 'What was missing from the filters?',
             description: '',
             options: [

@@ -21,14 +21,14 @@
 - CTA: Did you find the sizing info you needed?
 
 ### Step 1 — Rating (thumbs)
-- Eyebrow: Quick question for you
+- Eyebrow: Quick question…
 - Heading: Did you find the sizing info you needed?
 - Description: —
 - Response after 👍: Awesome! We love to hear that.
 - Response after 👎: Oh sorry. Let's fix that.
 
 ### Step 2A — Follow-up after 👍 (chips)
-- Eyebrow: Great to hear
+- Eyebrow: —
 - Heading: What made sizing easy to understand?
 - Description: —
 - Chips:
@@ -51,8 +51,8 @@
 ### Step 3 — Open text
 - Eyebrow: —
 - Heading: Anything else to share with the team?
-- Description: This could be related to product info or any other part of the site.
-- Placeholder: Your feedback (optional)…
+- Description: —
+- Placeholder: Could be about product info or anything else…
 
 ### Step 4 — Thank you
 - Eyebrow: —
@@ -92,7 +92,7 @@
   - Other *(→ Other)*
 
 ### Step 2B — Follow-up after 👎 (chips) — *not in Figma; authored to mirror 2A*
-- Eyebrow: Let's improve that.
+- Eyebrow: —
 - Heading: What was missing from the filters?
 - Description: —
 - Chips:

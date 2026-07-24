@@ -44,7 +44,7 @@
 :root,
 [data-theme="lighter"] {
   --text-primary: var(--neutral-99);
-  --text-secondary: var(--neutral-70);
+  --text-secondary: var(--neutral-65);
   --text-tertiary: var(--neutral-55);
   --text-quaternary: var(--neutral-40);
   --text-inverted: var(--neutral-00);
