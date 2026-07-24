@@ -18,11 +18,15 @@ function ThumbButton({ kind, active, onRate }) {
   const border = `1.111px solid ${active ? surface : 'var(--c-button-surface-ghosted-border)'}`
 
   return (
-    <button
+    <motion.button
       onClick={() => onRate?.(kind)}
       onPointerDown={() => setPressed(true)}
       onPointerUp={() => setPressed(false)}
       onPointerLeave={() => setPressed(false)}
+      // Press dip from the comp's "Button group" track, scoped to the button
+      // that was actually selected so the unpicked thumb stays put.
+      animate={active ? { scale: [1, 0.9, 1] } : { scale: 1 }}
+      transition={{ duration: 0.24, times: [0, 0.39, 1], ease: [0.5, 0, 0.5, 1] }}
       style={{
         width: 56, height: 56, borderRadius: 1000, boxSizing: 'border-box',
         background: surface, border,
@@ -32,7 +36,7 @@ function ThumbButton({ kind, active, onRate }) {
       }}
     >
       <Icon size={25} color={color} />
-    </button>
+    </motion.button>
   )
 }
 
@@ -103,12 +107,7 @@ function PopBurst() {
 
 export default function BinaryRating({ value, onRate }) {
   return (
-    <motion.div
-      // Press dip from the comp's "Button group" track: the whole pair sinks
-      // to 0.9 and recovers as the rating lands; the burst fires at the
-      // bottom of the dip.
-      animate={value ? { scale: [1, 0.9, 1] } : { scale: 1 }}
-      transition={{ duration: 0.24, times: [0, 0.39, 1], ease: [0.5, 0, 0.5, 1] }}
+    <div
       style={{
         display: 'flex', gap: 24, justifyContent: 'center',
         padding: '16px 0',  // + the input slot's own 16px bottom = 32 as drawn
@@ -122,6 +121,6 @@ export default function BinaryRating({ value, onRate }) {
         <ThumbButton kind="positive" active={value === 'positive'} onRate={onRate} />
       </div>
       <ThumbButton kind="negative" active={value === 'negative'} onRate={onRate} />
-    </motion.div>
+    </div>
   )
 }

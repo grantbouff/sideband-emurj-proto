@@ -48,7 +48,7 @@ export const sizingSteps = [
       negative: [
         {
           type: 'chips',
-          eyebrow: 'Let’s fix that',
+          eyebrow: '',
           heading: 'What was missing or unclear?',
           description: '',
           options: [

@@ -40,6 +40,10 @@
   letter-spacing: 0;
   font-weight: 400;
 }
+/* Placeholder text sits one step down (14px) from the typed text (16px). */
+.sb-textfield::placeholder {
+  font-size: 14px;
+}
 .sb-input-text {
   font-family: Inter, sans-serif;
   font-size: 16px;

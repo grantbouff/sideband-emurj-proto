@@ -31,9 +31,9 @@ export default {
         positive: [
           {
             type: 'chips',
-            eyebrow: '',
+            eyebrow: 'Based on your most common scenario',
             heading: 'How important is price when searching for pieces?',
-            description: 'Choose based on your list common scenario',
+            description: '',
             options: [
               { label: 'It’s Essential', value: 'essential' },
               { label: 'Moderately', value: 'moderately' },

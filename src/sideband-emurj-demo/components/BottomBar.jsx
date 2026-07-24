@@ -16,7 +16,7 @@ import { ThumbsUpIcon, ThumbsDownIcon } from './icons'
 // Entry decelerates in; exit is slower and eases IN (gentle start, then the
 // bar — text riding along — accelerates away). The old shared ease-out
 // front-loaded the exit and read as the content popping off.
-const EXIT_MS = 650
+const EXIT_MS = 450
 const EASE_OUT = [0.16, 1, 0.3, 1]
 const EASE_EXIT = [0.55, 0, 0.55, 0.2]
 
@@ -24,28 +24,42 @@ const EASE_EXIT = [0.55, 0, 0.55, 0.2]
 // the toggle's active pair rather than a literal black.
 function RateButton({ kind, selected, onRate, disabled }) {
   const [pressed, setPressed] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const Icon = kind === 'positive' ? ThumbsUpIcon : ThumbsDownIcon
 
+  // No dedicated toggle-hover token in the system, so hover sits halfway
+  // between each theme's default and pressed surfaces — a gentle nudge in
+  // whichever direction that theme's pressed state already moves.
+  const hover = selected
+    ? 'color-mix(in srgb, var(--c-toggle-surface-active), var(--c-toggle-surface-active-pressed) 55%)'
+    : 'color-mix(in srgb, var(--c-toggle-surface-default), var(--c-toggle-surface-pressed) 45%)'
+
   const background = selected
-    ? (pressed ? 'var(--c-toggle-surface-active-pressed)' : 'var(--c-toggle-surface-active)')
-    : (pressed ? 'var(--c-toggle-surface-pressed)' : 'var(--c-toggle-surface-default)')
+    ? (pressed ? 'var(--c-toggle-surface-active-pressed)' : (hovered ? hover : 'var(--c-toggle-surface-active)'))
+    : (pressed ? 'var(--c-toggle-surface-pressed)' : (hovered ? hover : 'var(--c-toggle-surface-default)'))
 
   return (
     <button
       onClick={() => onRate?.(kind)}
       onPointerDown={() => setPressed(true)}
       onPointerUp={() => setPressed(false)}
-      onPointerLeave={() => setPressed(false)}
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => { setHovered(false); setPressed(false) }}
       disabled={disabled}
       style={{
         width: 36, height: 24, borderRadius: 36,
         background,
-        border: '1px solid var(--c-button-surface-ghosted-border)',
+        // Border firms up on hover to echo the surface fill; ghosted at rest.
+        border: `1px solid ${hovered && !selected
+          ? 'color-mix(in srgb, var(--c-button-surface-ghosted-border), var(--c-toggle-text-default) 35%)'
+          : 'var(--c-button-surface-ghosted-border)'}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: 7.111,
         cursor: disabled ? 'default' : 'pointer',
         flexShrink: 0, pointerEvents: 'auto',
-        transition: 'background 0.18s ease',
+        // Slight sink on press for tactility; hover/rest sit flat.
+        transform: pressed && !disabled ? 'scale(0.92)' : 'scale(1)',
+        transition: 'background 0.18s ease, border-color 0.18s ease, transform 0.12s ease',
       }}
     >
       <Icon
@@ -159,7 +173,7 @@ export default function BottomBar({
       initial={{ y: 80 }}
       animate={{ y: entered && !exiting ? 0 : 80 }}
       transition={exiting
-        ? { duration: 0.6, ease: EASE_EXIT }
+        ? { duration: 0.4, ease: EASE_EXIT }
         : { duration: 0.45, ease: EASE_OUT }}
       style={{
         position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 50,
