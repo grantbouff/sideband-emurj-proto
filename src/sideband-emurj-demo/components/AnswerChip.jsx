@@ -65,10 +65,14 @@ export default function AnswerChip({
         }}>
           {/* Text-input caret: a thin bar scaled to the 14px placeholder
               (≈1.2em), so it reads as a cursor sitting just before the text
-              rather than a full-height rule. */}
+              rather than a full-height rule. Width is a flat 1px, not 1.5:
+              the half pixel rasterised crisply when the caret sits at
+              flex-start (verbose) but softly when centred (concise), so the
+              same element read as two different weights across the variants.
+              1px is the thinner of the two, and lands the same either way. */}
           <span style={{
             flex: 'none',
-            width: 1.5,
+            width: 1,
             height: '1.2em',
             background: 'var(--text-primary)',
           }} />

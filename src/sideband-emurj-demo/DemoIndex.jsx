@@ -2,6 +2,12 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CONFIGS } from './configs'
 
+const PAGE_LABELS = {
+  home: 'Home',
+  search: 'Search Results',
+  'product-detail': 'Product Detail',
+}
+
 /* DemoIndex — grid of the five SideBand prototypes, styled after
  * src/pages/Index.jsx.
  */
@@ -25,7 +31,7 @@ function PrototypeCard({ config }) {
           padding: '2px 5px', display: 'inline-flex', alignItems: 'center',
         }}>
           <span style={{ fontSize: 11, color: '#a5a5a5', letterSpacing: '-0.02em', fontFamily: 'Inter, sans-serif' }}>
-            {config.page === 'home' ? 'Home' : 'Product Detail'}
+            {PAGE_LABELS[config.page] || 'Product Detail'}
           </span>
         </div>
         <div style={{ position: 'absolute', bottom: 14, left: 8, right: 8 }}>

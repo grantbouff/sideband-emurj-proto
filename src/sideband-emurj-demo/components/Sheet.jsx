@@ -117,7 +117,9 @@ export default function Sheet({
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
         display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-start',
-        padding: '0 0 24px 20px',
+        // Mobile inset matches the 24 margin the surface leaves on the right,
+        // so the expanded sheet sits evenly between the screen edges.
+        padding: isWide ? '0 0 24px 20px' : '0 0 24px 24px',
         background: isWide ? 'transparent' : 'var(--shade-default)',
         // Wide: no scrim, so the sheet is non-modal — the backdrop passes
         // wheel/touch/clicks through to the page (the surface opts back in
@@ -146,7 +148,15 @@ export default function Sheet({
           // width change as part of the same morph the height tween drives.
           // Every value is a single number (no min/max constraints) so the
           // morph never re-derives width mid-flight.
-          width: `min(${variant === 'start' ? startWidth : 320}px, calc(100vw - 40px))`,
+          //
+          // Mobile drops the fixed widths entirely: every variant — the opening
+          // Start sheet and the questions that follow — spans the viewport less
+          // 24 either side, so the flow holds one width the whole way through.
+          // The 420 cap only bites on narrow-window desktop (below the 768
+          // wide breakpoint), where full-bleed would stretch the text column.
+          width: isWide
+            ? `min(${variant === 'start' ? startWidth : 320}px, calc(100vw - 40px))`
+            : 'min(420px, calc(100vw - 48px))',
           borderRadius: 32,
           background: 'var(--surface-base)',
           border: '1px solid var(--surface-primary-border)',

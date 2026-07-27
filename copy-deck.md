@@ -67,7 +67,7 @@
 ### Entry — bottom bar (thumbs live in the bar)
 - Question: What do you think of the available payment methods?
 - Response after 👍: Great! Thanks for letting us know.
-- Response after 👎: Thanks. We'll work on that
+- Response after 👎: Thanks. We'll work on that.
 
 ---
 

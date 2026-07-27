@@ -18,7 +18,7 @@ export default {
     dismissTimer: 12,
     responses: {
       positive: 'Great! Thanks for letting us know.',
-      negative: 'Thanks. We’ll work on that',
+      negative: 'Thanks. We’ll work on that.',
     },
     ratedTimer: 3,
   },
