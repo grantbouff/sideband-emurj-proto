@@ -65,7 +65,7 @@ const EXIT_MS = (T.groupOutDelay + T.groupOut) * 1000
 
 /* TriggerFAB — the pill entry point. Geometry from Figma "Trigger FAB"
  * (node 3435:22433): height 60, pad-left 10, gap 10, radius 1000, 40px avatar,
- * label Inter SemiBold 14/100%. Pad-right is 24 untimed, 28 when timed.
+ * label Inter 13/100% at weight 450. Pad-right is 24 untimed, 28 when timed.
  * Colour via c-fab-* tokens.
  *
  * Entry is staged, matching the comp: a 60px circle pops in on a *uniform*
@@ -116,8 +116,18 @@ export default function TriggerFAB({
   const [fullWidth, setFullWidth] = useState(null)
   const padRight = timer !== 'none' ? 28 : 24
   useLayoutEffect(() => {
-    if (!labelRef.current) return
-    setFullWidth(PAD_LEFT + AVATAR + GAP + labelRef.current.offsetWidth + padRight)
+    const measure = () => {
+      if (!labelRef.current) return
+      setFullWidth(PAD_LEFT + AVATAR + GAP + labelRef.current.offsetWidth + padRight)
+    }
+    measure()
+    // Inter is a self-hosted webfont on `font-display: swap`, so on a cold load
+    // this first measure can land while the fallback face is still showing and
+    // size the pill to the wrong glyph widths. Re-measure once the real face is
+    // in — resolves on the next microtask when it's already cached.
+    let live = true
+    document.fonts?.ready.then(() => { if (live) measure() })
+    return () => { live = false }
   }, [ctaValue, padRight])
 
   // Play the exit, then hand back to the flow.
@@ -265,7 +275,7 @@ export default function TriggerFAB({
           }}
         >
           <span
-            className="sb-button-label"
+            className="sb-fab-label"
             style={{ color: 'var(--c-fab-text)', whiteSpace: 'nowrap' }}
           >
             {ctaValue}

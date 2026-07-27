@@ -1,5 +1,9 @@
 /* Single import for the SideBand token layer. Import once at a demo entry
  * point (DemoPage / DemoIndex). foundation must precede theme (theme aliases it).
+ *
+ * fonts.css is deliberately NOT imported here — src/index.css pulls it in for
+ * the whole app, and importing it from both places emits every @font-face
+ * twice. typography.css consumes its --sb-font-sans token.
  */
 @import "./foundation.css";
 @import "./theme.css";
