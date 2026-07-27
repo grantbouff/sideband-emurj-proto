@@ -6,12 +6,15 @@
 import emurjLogo from '../assets/emurj-logo.svg'
 
 // 40px (default) circular avatar — a full-radius frame clipping a logo image.
-// The image (svg/png/jpeg) fills the frame and scales with it; the asset
-// carries its own ground and internal padding. Swap `src` for other brands.
+// The image (svg/png/jpeg) fills the frame and scales with it. The asset is
+// ground-less on purpose: the frame supplies the ground from a token, so the
+// disc can sit off-white against a pure-white light FAB and stay pure white
+// against a dark one. Swap `src` for other brands.
 export const EmurjAvatar = ({ size = 40, src = emurjLogo, alt = 'Emurj' }) => (
   <div style={{
     width: size, height: size, borderRadius: '50%',
-    background: '#FFFFFF', flexShrink: 0, overflow: 'hidden',
+    background: 'var(--c-fab-avatar-ground, #FFFFFF)',
+    flexShrink: 0, overflow: 'hidden',
   }}>
     <img
       src={src}

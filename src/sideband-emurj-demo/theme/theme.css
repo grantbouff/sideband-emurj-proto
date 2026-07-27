@@ -60,6 +60,9 @@
   --c-button-surface-tertiary: var(--surface-base);
 
   --c-fab-ghosted-fill: rgba(0, 0, 0, 0.05);
+  /* Off-white ground for the avatar disc — a pure-white logo would vanish into
+   * the FAB's white surface. */
+  --c-fab-avatar-ground: #F5F5F5;
 
   --c-button-text-primary: var(--neutral-00);
   --c-button-text-primary-inverted: var(--neutral-99);
@@ -104,6 +107,7 @@
   --c-button-surface-tertiary: var(--surface-base);
 
   --c-fab-ghosted-fill: rgba(0, 0, 0, 0.05);
+  --c-fab-avatar-ground: #F5F5F5;
 
   --c-button-text-primary: var(--neutral-00);
   --c-button-text-primary-inverted: var(--neutral-99);
@@ -148,6 +152,8 @@
   --c-button-surface-tertiary: var(--surface-base);
 
   --c-fab-ghosted-fill: rgba(255, 255, 255, 0.10);
+  /* Pure white against a dark surface — the disc is already distinct. */
+  --c-fab-avatar-ground: var(--neutral-00);
 
   --c-button-text-primary: var(--neutral-99);
   --c-button-text-primary-inverted: var(--neutral-00);
@@ -192,6 +198,7 @@
   --c-button-surface-tertiary: var(--surface-base);
 
   --c-fab-ghosted-fill: rgba(255, 255, 255, 0.10);
+  --c-fab-avatar-ground: var(--neutral-00);
 
   --c-button-text-primary: var(--neutral-99);
   --c-button-text-primary-inverted: var(--neutral-00);
