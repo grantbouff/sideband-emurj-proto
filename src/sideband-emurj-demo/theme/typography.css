@@ -10,9 +10,10 @@
   letter-spacing: -0.02em;
   font-weight: 600;
 }
+/* The sheet's modal heading. 16px, a step below the in-page H2 below. */
 .sb-heading-2 {
   font-family: var(--sb-font-sans);
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.2;
   letter-spacing: 0;
   font-weight: 600;
@@ -28,14 +29,17 @@
 }
 .sb-chip-label {
   font-family: var(--sb-font-sans);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.2;
   letter-spacing: 0;
   font-weight: 700;
 }
+/* The "Something else" answer chip. Tracks .sb-chip-label's size — the two
+ * render side by side in one options row, so they must agree; this is a step
+ * off the Figma Input/Placeholder 14. Weight is what separates them. */
 .sb-input-placeholder {
   font-family: var(--sb-font-sans);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.2;
   letter-spacing: 0;
   font-weight: 400;

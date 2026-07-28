@@ -143,6 +143,9 @@ export default function FlowRunner({ config }) {
   let slot = null
   let footer = null
   let media = null
+  // Answer chips sit 4px wider than the sheet's other slots; everything else
+  // keeps the heading's 24 inset.
+  let slotInline = 24
 
   if (step) {
     if (step.type === 'binary') {
@@ -182,6 +185,7 @@ export default function FlowRunner({ config }) {
       const isVerbose = styleVariant === 'verbose'
       // Fixed-width columns so a lone chip on the last row keeps its size
       // instead of stretching across the grid.
+      slotInline = 20
       slot = (
         <div style={{
           display: 'grid',
@@ -285,6 +289,7 @@ export default function FlowRunner({ config }) {
               lockHeight={!!ratedResponse}
               media={media}
               footer={footer}
+              slotInline={slotInline}
               onClose={close}
               slideIn={entryType === 'sheet'}
               // Sheet entry opens narrow on its Start step, then widens to the

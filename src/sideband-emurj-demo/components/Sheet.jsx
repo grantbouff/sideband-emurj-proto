@@ -35,6 +35,9 @@ export default function Sheet({
   morphFromTheme = null, // entry theme when the FAB morph crosses themes
   lockHeight = false, // freeze the surface height (the binary rated hold)
   startWidth = 320, // width of the Start variant; morphs to 320 on later steps
+  // Horizontal inset for the children slot. Defaults to the 24 the heading
+  // uses; the answer-chip group overrides it to 20.
+  slotInline = 24,
 }) {
   const [isWide, setIsWide] = useState(() => window.innerWidth > 768)
   useEffect(() => {
@@ -337,7 +340,7 @@ export default function Sheet({
             )}
 
             {children && (
-              <div style={{ width: '100%', padding: '0 24px 16px', boxSizing: 'border-box' }}>{children}</div>
+              <div style={{ width: '100%', padding: `0 ${slotInline}px 16px`, boxSizing: 'border-box' }}>{children}</div>
             )}
           </div>
 
