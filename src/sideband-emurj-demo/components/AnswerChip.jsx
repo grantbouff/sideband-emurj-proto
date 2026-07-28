@@ -18,15 +18,30 @@ export default function AnswerChip({
   onToggle,
 }) {
   const [pressed, setPressed] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const isVerbose = styleVariant === 'verbose'
   const isOther = type === 'other'
+  // 'other' never takes the selected look — it diverts rather than toggles.
+  const isActive = active && !isOther
 
-  const surface = active && !isOther
-    ? (pressed ? 'var(--c-input-surface-primary-active-pressed)' : 'var(--c-input-surface-primary-active)')
-    : (pressed ? 'var(--c-input-surface-primary-pressed)' : 'var(--c-input-surface-primary)')
-  const color = active && !isOther ? 'var(--c-input-text-on-active)' : 'var(--c-input-text-primary)'
+  // No dedicated input-hover token in the system, so hover sits between each
+  // theme's default and pressed surfaces — the same halfway nudge the rate
+  // buttons use, in whichever direction that theme's pressed state moves.
+  const hover = isActive
+    ? 'color-mix(in srgb, var(--c-input-surface-primary-active), var(--c-input-surface-primary-active-pressed) 55%)'
+    : 'color-mix(in srgb, var(--c-input-surface-primary), var(--c-input-surface-primary-pressed) 45%)'
+
+  const surface = isActive
+    ? (pressed ? 'var(--c-input-surface-primary-active-pressed)' : (hovered ? hover : 'var(--c-input-surface-primary-active)'))
+    : (pressed ? 'var(--c-input-surface-primary-pressed)' : (hovered ? hover : 'var(--c-input-surface-primary)'))
+  const color = isActive ? 'var(--c-input-text-on-active)' : 'var(--c-input-text-primary)'
   // Active states drop the hairline; keep the 1px so the box doesn't resize.
-  const border = `1px solid ${active && !isOther ? 'transparent' : 'var(--c-button-surface-ghosted-border)'}`
+  // Unselected chips firm the border up on hover to echo the surface fill.
+  const border = `1px solid ${isActive
+    ? 'transparent'
+    : (hovered
+      ? 'color-mix(in srgb, var(--c-button-surface-ghosted-border), var(--c-input-text-primary) 35%)'
+      : 'var(--c-button-surface-ghosted-border)')}`
 
   return (
     <button
@@ -34,7 +49,8 @@ export default function AnswerChip({
       onClick={() => onToggle?.(!active)}
       onPointerDown={() => setPressed(true)}
       onPointerUp={() => setPressed(false)}
-      onPointerLeave={() => setPressed(false)}
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => { setHovered(false); setPressed(false) }}
       style={{
         position: 'relative',
         display: 'flex',
@@ -50,7 +66,7 @@ export default function AnswerChip({
         cursor: 'pointer',
         overflow: 'hidden',
         pointerEvents: 'auto',
-        transition: 'background 0.12s ease, color 0.12s ease',
+        transition: 'background 0.12s ease, color 0.12s ease, border-color 0.12s ease',
       }}
     >
       {isOther ? (
