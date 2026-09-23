@@ -1,6 +1,8 @@
-import { HashRouter as BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
 import Index from './pages/Index'
 import ConceptPage from './pages/ConceptPage'
+import DemoIndex from './sideband-emurj-demo/DemoIndex'
+import DemoPage from './sideband-emurj-demo/DemoPage'
 import './index.css'
 
 export const CONCEPTS = {
@@ -23,12 +25,28 @@ export const CONCEPTS = {
   ],
 }
 
+function LegacyDemoRedirect() {
+  const { configId } = useParams()
+  return <Navigate to={`/web-demo/${configId}`} replace />
+}
+
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
-        <Route path="/" element={<Index />} />
+        {/* Web demo is the landing page */}
+        <Route path="/" element={<DemoIndex />} />
+        <Route path="/web-demo" element={<Navigate to="/" replace />} />
+        <Route path="/web-demo/:configId" element={<DemoPage />} />
+
+        <Route path="/fab-prototypes" element={<Index />} />
         <Route path="/concept/:user/:conceptId/:page" element={<ConceptPage />} />
+
+        {/* Legacy paths */}
+        <Route path="/demo" element={<Navigate to="/" replace />} />
+        <Route path="/demo/:configId" element={<LegacyDemoRedirect />} />
+        <Route path="/sideband-emurj-demo" element={<Navigate to="/" replace />} />
+        <Route path="/sideband-emurj-demo/:configId" element={<LegacyDemoRedirect />} />
       </Routes>
     </BrowserRouter>
   )

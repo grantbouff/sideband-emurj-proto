@@ -72,7 +72,19 @@ function devConfigPlugin() {
   }
 }
 
+// GitHub Pages has no SPA rewrite — serving index.html as 404.html makes
+// deep links (/web-demo/3, /concept/...) resolve instead of hard-404ing.
+function spaFallbackPlugin() {
+  return {
+    name: 'spa-fallback-404',
+    closeBundle() {
+      const out = resolve('./dist')
+      writeFileSync(resolve(out, '404.html'), readFileSync(resolve(out, 'index.html')))
+    },
+  }
+}
+
 export default defineConfig({
   base: '/sideband-emurj-proto/',
-  plugins: [react(), devConfigPlugin()],
+  plugins: [react(), devConfigPlugin(), spaFallbackPlugin()],
 })

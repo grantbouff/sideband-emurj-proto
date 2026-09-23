@@ -78,11 +78,11 @@ const USERS = [
   { key: 'nick',  name: 'Nick' },
 ]
 
-function ConceptCard({ user, card, release }) {
+function ConceptCard({ card, to }) {
   const [hovered, setHovered] = useState(false)
   return (
     <Link
-      to={`/concept/${user}/${card.id}/${card.page}?release=${release}`}
+      to={to}
       style={{ textDecoration: 'none', display: 'block' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -177,10 +177,11 @@ export default function Index() {
 
   return (
     <div style={styles.container}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <h1 style={styles.title}>FAB Prototypes</h1>
           <p style={styles.subtitle}>Overlay component concepts</p>
+          <Link to="/" style={styles.demoLink}>← SideBand Emurj Demo</Link>
         </div>
         <select
           value={release}
@@ -208,11 +209,16 @@ export default function Index() {
         {USERS.map(({ key }) => (
           <div key={key} style={styles.grid}>
             {getFilteredCards(key).map(card => (
-              <ConceptCard key={card.id} user={key} card={card} release={release} />
+              <ConceptCard
+                key={card.id}
+                card={card}
+                to={`/concept/${key}/${card.id}/${card.page}?release=${release}`}
+              />
             ))}
           </div>
         ))}
       </div>
+
     </div>
   )
 }
@@ -233,7 +239,7 @@ const styles = {
   subtitle: {
     fontSize: 14,
     color: '#555',
-    margin: '0 0 56px 0',
+    margin: '0 0 8px 0',
     fontFamily: 'Inter, sans-serif',
   },
   columns: {
@@ -256,5 +262,10 @@ const styles = {
     gridTemplateColumns: 'repeat(2, 1fr)',
     gap: 8,
     alignSelf: 'start',
+  },
+  demoLink: {
+    fontSize: 13,
+    color: '#666',
+    fontFamily: 'Inter, sans-serif',
   },
 }
