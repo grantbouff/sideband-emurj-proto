@@ -101,3 +101,22 @@
   letter-spacing: 0;
   font-weight: 450;
 }
+/* Snack Bar CTA — Figma "Button/Button Label": 14/140% at Semi Bold. Split
+ * from `.sb-button-label` because the bar's question can wrap to two lines,
+ * which needs the real 1.4 leading rather than the button's 1. */
+.sb-snackbar-label {
+  font-family: var(--sb-font-sans);
+  font-size: 14px;
+  line-height: 1.4;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+/* The rated interstitial's message — 22/120% Semi Bold, centred, per the
+ * interstitial comp (4835:30321). */
+.sb-heading-interstitial {
+  font-family: var(--sb-font-sans);
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: 0;
+  font-weight: 600;
+}

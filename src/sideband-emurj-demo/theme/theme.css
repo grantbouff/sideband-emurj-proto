@@ -26,6 +26,7 @@
   --text-brand: var(--brand-primary);
   --surface-highlight: var(--brand-primary);
   --c-fab-hairline-timer-fill: #000000;
+  --c-fab-bar-hairline-timer-fill: var(--brand-primary);
 
   --element-error-accent-01: #FFDEDF;
   --element-error-accent-02: #D00000;
@@ -86,6 +87,18 @@
   --c-toggle-surface-pressed: var(--neutral-10);
   --c-toggle-surface-active: var(--neutral-85);
   --c-toggle-surface-active-pressed: var(--neutral-90);
+  /* Snack Bar surface (c-fab-bar/*) + the Filled thumb's overlay stack
+   * (c-toggle/surface/filled-overlay*). Overlays are text-primary at a
+   * per-mode alpha, laid over the bar surface; pressed tints the active
+   * neutral instead. */
+  --c-fab-bar-text: var(--text-primary);
+  --c-fab-bar-surface: var(--surface-base);
+  --c-fab-bar-border: var(--surface-primary-border);
+  --c-fab-bar-ghosted-fill: color-mix(in srgb, var(--text-primary) 14%, transparent);
+  --c-toggle-surface-filled-overlay: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  --c-toggle-surface-filled-overlay-hovered: color-mix(in srgb, var(--text-primary) 4%, transparent);
+  --c-toggle-surface-filled-overlay-active: var(--neutral-85);
+  --c-toggle-surface-filled-overlay-pressed: color-mix(in srgb, var(--neutral-85) 20%, transparent);
 }
 
 /* ── Light ───────────────────────────────────────────────────────────── */
@@ -131,6 +144,18 @@
   --c-toggle-surface-pressed: var(--neutral-15);
   --c-toggle-surface-active: var(--neutral-85);
   --c-toggle-surface-active-pressed: var(--neutral-90);
+  /* Snack Bar surface (c-fab-bar/*) + the Filled thumb's overlay stack
+   * (c-toggle/surface/filled-overlay*). Overlays are text-primary at a
+   * per-mode alpha, laid over the bar surface; pressed tints the active
+   * neutral instead. */
+  --c-fab-bar-text: var(--text-primary);
+  --c-fab-bar-surface: var(--surface-base);
+  --c-fab-bar-border: var(--surface-primary-border);
+  --c-fab-bar-ghosted-fill: color-mix(in srgb, var(--text-primary) 14%, transparent);
+  --c-toggle-surface-filled-overlay: color-mix(in srgb, var(--text-primary) 10%, transparent);
+  --c-toggle-surface-filled-overlay-hovered: color-mix(in srgb, var(--text-primary) 4%, transparent);
+  --c-toggle-surface-filled-overlay-active: var(--neutral-80);
+  --c-toggle-surface-filled-overlay-pressed: color-mix(in srgb, var(--neutral-80) 20%, transparent);
 }
 
 /* ── Dark ────────────────────────────────────────────────────────────── */
@@ -177,6 +202,18 @@
   --c-toggle-surface-pressed: var(--neutral-85);
   --c-toggle-surface-active: var(--neutral-20);
   --c-toggle-surface-active-pressed: var(--neutral-25);
+  /* Snack Bar surface (c-fab-bar/*) + the Filled thumb's overlay stack
+   * (c-toggle/surface/filled-overlay*). Overlays are text-primary at a
+   * per-mode alpha, laid over the bar surface; pressed tints the active
+   * neutral instead. */
+  --c-fab-bar-text: var(--text-primary);
+  --c-fab-bar-surface: var(--surface-base);
+  --c-fab-bar-border: var(--surface-primary-border);
+  --c-fab-bar-ghosted-fill: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  --c-toggle-surface-filled-overlay: color-mix(in srgb, var(--text-primary) 14%, transparent);
+  --c-toggle-surface-filled-overlay-hovered: color-mix(in srgb, var(--text-primary) 18%, transparent);
+  --c-toggle-surface-filled-overlay-active: var(--neutral-20);
+  --c-toggle-surface-filled-overlay-pressed: color-mix(in srgb, var(--neutral-20) 24%, transparent);
 }
 
 /* ── Darker ──────────────────────────────────────────────────────────── */
@@ -222,4 +259,16 @@
   --c-toggle-surface-pressed: var(--neutral-90);
   --c-toggle-surface-active: var(--neutral-15);
   --c-toggle-surface-active-pressed: var(--neutral-20);
+  /* Snack Bar surface (c-fab-bar/*) + the Filled thumb's overlay stack
+   * (c-toggle/surface/filled-overlay*). Overlays are text-primary at a
+   * per-mode alpha, laid over the bar surface; pressed tints the active
+   * neutral instead. */
+  --c-fab-bar-text: var(--text-primary);
+  --c-fab-bar-surface: var(--surface-base);
+  --c-fab-bar-border: var(--surface-primary-border);
+  --c-fab-bar-ghosted-fill: color-mix(in srgb, var(--text-primary) 15%, transparent);
+  --c-toggle-surface-filled-overlay: color-mix(in srgb, var(--text-primary) 20%, transparent);
+  --c-toggle-surface-filled-overlay-hovered: color-mix(in srgb, var(--text-primary) 24%, transparent);
+  --c-toggle-surface-filled-overlay-active: var(--neutral-20);
+  --c-toggle-surface-filled-overlay-pressed: color-mix(in srgb, var(--neutral-20) 28%, transparent);
 }

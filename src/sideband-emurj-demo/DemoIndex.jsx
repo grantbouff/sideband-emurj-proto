@@ -8,7 +8,7 @@ const PAGE_LABELS = {
   'product-detail': 'Product Detail',
 }
 
-/* DemoIndex — grid of the five SideBand prototypes, styled after
+/* DemoIndex — grid of the SideBand prototypes, styled after
  * src/pages/Index.jsx.
  */
 function PrototypeCard({ config }) {

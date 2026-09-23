@@ -1,6 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CloseIcon } from './icons'
+import { INTERSTITIAL_HOLD } from './interstitialTiming'
 
 /* Sheet — the modal shell. One component, four variants mirroring the Figma
  * `Default Sheet` component set (Sheet Type=Start / In-Progress / Interstitial /
@@ -18,7 +19,66 @@ import { CloseIcon } from './icons'
  * (Figma gives per-variant max widths of 414/620; this demo pins later
  * variants to a fixed 320. The Start sheet can open narrower via startWidth
  * and morph out to 320 on the following steps.)
+ *
+ * anchor:
+ *   'corner' — bottom-left, morphing out of the FAB (layoutId). Default.
+ *   'center' — horizontally centred with its bottom edge pinned
+ *              CENTER_BASELINE up, so the baseline holds through resizes and
+ *              every step's height change (the height tween grows the card
+ *              upward). On a window too short for that it slides down to
+ *              centre instead, keeping CENTER_MIN_GAP clear top and bottom;
+ *              past that it scrolls. No layoutId:
+ *              the in-page entry (snack bar) fades out on its own rather than
+ *              morphing. Card is 344 wide, per the interstitial comp.
+ *
+ * interstitial: a node shown *instead of* the header/content/footer, in a
+ * 300-wide card — the rated message after rating from the snack bar. When it
+ * clears, the comp (Figma 4835:30279) plays, rebased to that moment: message
+ * lifts out 0→0.277s, card grows to full size 0.128→0.669s, card content
+ * fades in 0.233→0.373s, and the progress fill grows in from empty
+ * 0.277→1.177s. The scrim departs from the comp: rather than snapping in on
+ * the morph, it fades in slowly across the whole interstitial (SCRIM_SLOW).
  */
+
+// Centre anchor: how far the card's bottom edge sits above the bottom of the
+// window — the baseline it holds through step height changes. Any CSS length
+// (vh, dvh, px, rem…). `wide` applies above the sheet's 768px breakpoint (the
+// same one that switches its mobile layout), `narrow` at or below it. On a
+// window too short for it the card slides down to centre instead, keeping
+// CENTER_MIN_GAP clear top and bottom.
+const CENTER_BASELINE = { wide: '15vh', narrow: '5vh' }
+const CENTER_MIN_GAP = '1rem'
+
+const EASE_ENTER = [0.649, 0.058, 0.125, 1]
+const EASE_IN_OUT = [0.5, 0, 0.5, 1]
+const EASE_POP = [0, 0.6, 0, 1]
+// Interstitial → card resize, shared by width, the content height tween and
+// the footer row so the card grows as one.
+const MORPH = { duration: 0.541, delay: 0.128, ease: EASE_ENTER }
+// Delay from the snack bar tap to the card surface appearing (comp: 2.398s
+// against a 2.263s tap).
+const CENTER_ENTER_DELAY = 0.135
+
+// Step-to-step resize, shared by the content height tween and the footer row
+// so they move as one. Short with a quick start and a soft landing — snappy,
+// but still a readable move rather than a jump.
+const STEP_RESIZE = { duration: 0.28, ease: [0.3, 0, 0.2, 1] }
+
+// Centre-anchor scrim: one slow fade that starts once the interstitial has
+// settled in (SCRIM_START after the tap) and lands as the card finishes
+// growing (the interstitial hold + the morph's delay and duration), so the
+// page dims gradually under the interstitial rather than all at once on the
+// morph. Derived from INTERSTITIAL_HOLD, so retiming the hold moves it too.
+const SCRIM_START = 0.5
+const SCRIM_END = INTERSTITIAL_HOLD + MORPH.delay + MORPH.duration
+const SCRIM_SLOW = { duration: SCRIM_END - SCRIM_START, delay: SCRIM_START, ease: EASE_IN_OUT }
+
+// Centre-anchor widths: the 300 interstitial and the 344 card on desktop;
+// mobile keeps the corner sheet's full-bleed-less-24 width.
+function centerWidth(vw, interstitial) {
+  if (interstitial) return Math.min(300, vw - 48)
+  return vw > 768 ? Math.min(344, vw - 40) : Math.min(420, vw - 48)
+}
 export default function Sheet({
   variant = 'in-progress', // 'start' | 'in-progress' | 'interstitial' | 'end'
   progress = 0,
@@ -38,13 +98,30 @@ export default function Sheet({
   // Horizontal inset for the children slot. Defaults to the 24 the heading
   // uses; the answer-chip group overrides it to 20.
   slotInline = 24,
+  anchor = 'corner', // 'corner' | 'center'
+  interstitial = null,
 }) {
-  const [isWide, setIsWide] = useState(() => window.innerWidth > 768)
+  const [vw, setVw] = useState(() => window.innerWidth)
   useEffect(() => {
-    const fn = () => setIsWide(window.innerWidth > 768)
+    const fn = () => setVw(window.innerWidth)
     window.addEventListener('resize', fn)
     return () => window.removeEventListener('resize', fn)
   }, [])
+  const isWide = vw > 768
+  const centered = anchor === 'center'
+
+  // Which step the card opened on after the interstitial cleared. While we're
+  // still on that step, the resize/footer/progress use the interstitial
+  // morph timings; later steps fall back to the ordinary step transitions.
+  // Derived during render (not in an effect) so the card's very first render
+  // already has it — the progress fill's `initial` is read only at mount.
+  const [hadInterstitial, setHadInterstitial] = useState(!!interstitial)
+  const [introKey, setIntroKey] = useState(null)
+  if (hadInterstitial !== !!interstitial) {
+    setHadInterstitial(!!interstitial)
+    if (!interstitial) setIntroKey(stepKey)
+  }
+  const intro = introKey !== null && introKey === stepKey
 
   // Height is tweened explicitly between steps: measure the content's natural
   // height and animate the wrapper towards it. Without this the layoutId
@@ -75,6 +152,12 @@ export default function Sheet({
   useEffect(() => {
     if (!lockHeight && innerRef.current) setHeight(innerRef.current.offsetHeight)
   }, [lockHeight])
+  // Interstitial → card: measure the card in the same commit it mounts, so the
+  // height tween starts on the same frame as the width tween instead of a
+  // frame later off the observer.
+  useLayoutEffect(() => {
+    if (!interstitial && innerRef.current) setHeight(innerRef.current.offsetHeight)
+  }, [interstitial])
 
   // The text block gets the same freeze: the rated swap trades a two-line
   // question for a one-line response, and without a reserved height the
@@ -99,6 +182,20 @@ export default function Sheet({
     if (height !== 'auto') hasMeasured.current = true
   }, [height])
 
+  // Scrim: the corner sheet dims only on mobile. The centred sheet always
+  // dims, but slowly — see SCRIM_SLOW. It only starts catching taps once the
+  // interstitial has become the card.
+  const scrim = centered ? true : !isWide
+  const scrimBlocks = centered ? !interstitial : scrim
+  // Centre anchor: the card's content is laid out at its *final* width from
+  // the first frame, centred inside the growing surface (a flex child wider
+  // than its column overflows both sides equally; the surface clips it).
+  // Letting it re-flow with the animating width re-measured the height every
+  // frame, and each re-measure restarted the delayed height tween — the card
+  // stalled short, then caught up after the width. Now the height is
+  // measured once and width + height run as one move.
+  const cardW = centerWidth(vw, false)
+  const fixedCol = centered ? { width: cardW, alignSelf: 'center', flexShrink: 0 } : null
   const showHeader = variant !== 'end'
   const showProgress = variant === 'in-progress'
   const isH1 = variant === 'interstitial' || variant === 'end'
@@ -119,28 +216,67 @@ export default function Sheet({
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-start',
-        // Mobile inset matches the 24 margin the surface leaves on the right,
-        // so the expanded sheet sits evenly between the screen edges.
-        padding: isWide ? '0 0 24px 20px' : '0 0 24px 24px',
-        background: isWide ? 'transparent' : 'var(--shade-default)',
-        // Wide: no scrim, so the sheet is non-modal — the backdrop passes
+        display: 'flex',
+        // Corner: mobile inset matches the 24 margin the surface leaves on
+        // the right, so the expanded sheet sits evenly between the screen
+        // edges. Centre: a column of spacer / card / spacer — see below.
+        ...(centered
+          ? { flexDirection: 'column', alignItems: 'center', padding: `${CENTER_MIN_GAP} 0` }
+          : {
+              alignItems: 'flex-end', justifyContent: 'flex-start',
+              padding: isWide ? '0 0 24px 20px' : '0 0 24px 24px',
+            }),
+        // Without a scrim the sheet is non-modal — the backdrop passes
         // wheel/touch/clicks through to the page (the surface opts back in
-        // below). Narrow keeps the dimmed modal: scrim catches events and a
-        // tap on it closes.
-        pointerEvents: isWide ? 'none' : 'auto',
+        // below). With one, the scrim catches events and a tap on it closes.
+        pointerEvents: scrimBlocks ? 'auto' : 'none',
       }}
     >
       <motion.div
-        layoutId="fab-surface"
-        initial={slideIn ? { y: 64, opacity: 0 } : { opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+        initial={centered ? { opacity: 0 } : false}
+        animate={{ opacity: scrim ? 1 : 0 }}
+        transition={centered ? SCRIM_SLOW : { duration: 0.2 }}
+        style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: 'var(--shade-default)',
+        }}
+      />
+      {/* Centre anchor, vertical placement. Free space splits evenly between
+          two spacers, but the bottom one caps at CENTER_BASELINE (less the
+          CENTER_MIN_GAP pad), so with room to spare the card's bottom edge
+          sits on the baseline
+          and height changes grow it upward. On a short window, once the
+          centred position is lower than the baseline, both spacers shrink
+          together and the card rides down to centre, never closer than CENTER_MIN_GAP
+          to either edge. Plain flex layout, so it follows the height tween
+          and window resizes frame by frame. */}
+      {centered && <div style={{ flex: '1 1 0' }} />}
+      <motion.div
+        layoutId={centered ? undefined : 'fab-surface'}
+        initial={centered
+          ? { y: 40, opacity: 0, width: centerWidth(vw, interstitial) }
+          : slideIn ? { y: 64, opacity: 0 } : { opacity: 0 }}
+        // Centre: the comp's rise — a quick 40→6 pop with the fade, then a
+        // long slow settle 6→0 that runs on under the card morph.
+        animate={centered
+          ? { y: [40, 6, 0], opacity: 1, width: centerWidth(vw, interstitial) }
+          : { y: 0, opacity: 1 }}
         // The thank-you card sinks down as it fades on dismiss (the other
         // variants leave with the backdrop's plain fade).
         exit={variant === 'end'
           ? { y: 48, opacity: 0, transition: { duration: 0.32, ease: [0.4, 0, 1, 1] } }
           : undefined}
-        transition={{ duration: 0.5, delay: enterDelay, ease: [0.16, 1, 0.3, 1] }}
+        transition={centered
+          ? {
+              opacity: { duration: 0.608, delay: CENTER_ENTER_DELAY, ease: EASE_POP },
+              y: {
+                duration: 2.288, delay: CENTER_ENTER_DELAY,
+                times: [0, 0.2657, 1], ease: [EASE_POP, [0.411, 0.063, 1, 1]],
+              },
+              // Resizes after the morph (window resize) apply immediately.
+              width: intro ? MORPH : { duration: 0 },
+            }
+          : { duration: 0.5, delay: enterDelay, ease: [0.16, 1, 0.3, 1] }}
         onClick={(e) => e.stopPropagation()}
         style={{
           position: 'relative',
@@ -157,9 +293,15 @@ export default function Sheet({
           // 24 either side, so the flow holds one width the whole way through.
           // The 420 cap only bites on narrow-window desktop (below the 768
           // wide breakpoint), where full-bleed would stretch the text column.
-          width: isWide
-            ? `min(${variant === 'start' ? startWidth : 320}px, calc(100vw - 40px))`
-            : 'min(420px, calc(100vw - 48px))',
+          //
+          // The centred card's width is animated (see `animate`), not styled:
+          // a plain width tween keeps its content unskewed, where layout
+          // projection would scale it.
+          ...(centered ? null : {
+            width: isWide
+              ? `min(${variant === 'start' ? startWidth : 320}px, calc(100vw - 40px))`
+              : 'min(420px, calc(100vw - 48px))',
+          }),
           borderRadius: 32,
           background: 'var(--surface-base)',
           border: '1px solid var(--surface-primary-border)',
@@ -167,6 +309,7 @@ export default function Sheet({
           overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
           pointerEvents: 'auto', // opt back in when the backdrop is pass-through
+          flexShrink: 0,
 
         }}
       >
@@ -189,14 +332,13 @@ export default function Sheet({
         )}
         <motion.div
           animate={{ height }}
-          // Ease-in-out, not the expo-out the surface uses for its morph: an
-          // expo-out covers half the distance in the first frames, which reads
-          // as the height snapping before it settles. Starting gently keeps
-          // the resize legible as one continuous move.
+          // STEP_RESIZE between steps. Not the expo-out the surface uses for
+          // its morph: that covers half the distance in the first frames and
+          // reads as the height snapping before it settles.
           transition={hasMeasured.current
-            ? { duration: 0.45, ease: [0.65, 0, 0.35, 1] }
+            ? (intro ? MORPH : STEP_RESIZE)
             : { duration: 0 }}
-          style={{ overflow: 'hidden' }}
+          style={{ overflow: 'hidden', ...fixedCol }}
         >
         <motion.div
           ref={innerRef}
@@ -207,10 +349,38 @@ export default function Sheet({
           // owned by the measured height tween above.
           layout="position"
           style={{ display: 'flex', flexDirection: 'column' }}
-          initial={{ opacity: 0, y: 8 }}
+          // The centred card fades as a whole surface; no second content fade.
+          initial={centered ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0, 0.55, 0.45, 1], delay: enterDelay + 0.12 }}
         >
+          {/* Interstitial ⇄ card. popLayout lifts the outgoing message out
+              of flow at once, so the height tween only tracks the card. The
+              card is initial={false} for sheets that open straight onto it. */}
+          <AnimatePresence mode="popLayout" initial={false}>
+          {interstitial ? (
+          <motion.div
+            key="interstitial"
+            // Held at the interstitial's own width, centred in the card column.
+            style={{ width: centerWidth(vw, true), alignSelf: 'center' }}
+            exit={{
+              opacity: 0, y: -24,
+              transition: {
+                opacity: { duration: 0.277, ease: EASE_IN_OUT },
+                y: { duration: 0.277, ease: [0.649, 0.058, 0.904, 0.732] },
+              },
+            }}
+          >
+            {interstitial}
+          </motion.div>
+          ) : (
+          <motion.div
+            key="card"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.14, delay: 0.233, ease: EASE_IN_OUT }}
+            style={{ display: 'flex', flexDirection: 'column' }}
+          >
           {/* Header — 50px band matching Figma (node 2452:10243): close button
               at top 10 / right 16, progress track centred on the button's
               vertical midline (y=30). Track sized 184×5 (Figma is 216×6 on its
@@ -223,12 +393,19 @@ export default function Sheet({
                   top: 27.5, width: 184, height: 5, borderRadius: 24, overflow: 'hidden',
                   background: 'var(--surface-tertiary)',
                 }}>
-                  <div style={{
-                    height: '100%', borderRadius: 24,
-                    width: `${Math.max(0, Math.min(1, progress)) * 100}%`,
-                    background: 'var(--text-primary)',
-                    transition: 'width 0.3s ease',
-                  }} />
+                  {/* Coming out of the interstitial the fill grows in from
+                      empty; step to step it just eases to the new value. */}
+                  <motion.div
+                    initial={intro ? { width: '0%' } : false}
+                    animate={{ width: `${Math.max(0, Math.min(1, progress)) * 100}%` }}
+                    transition={intro
+                      ? { duration: 0.9, delay: 0.277, ease: EASE_POP }
+                      : { duration: 0.3, ease: 'easeOut' }}
+                    style={{
+                      height: '100%', borderRadius: 24,
+                      background: 'var(--text-primary)',
+                    }}
+                  />
                 </div>
               )}
               <button
@@ -264,7 +441,13 @@ export default function Sheet({
           >
           {/* Content — full sheet width; the text column caps itself at 330. */}
           <div style={{
-            maxHeight: 'min(400px, 60vh)',
+            // Centre anchor: also capped so header (50) + footer (81) + border
+            // (2) + this still fit inside the CENTER_MIN_GAP margins — on a very short
+            // window the question scrolls rather than the card leaving the
+            // screen.
+            maxHeight: centered
+              ? `min(400px, 60vh, calc(100dvh - 2 * ${CENTER_MIN_GAP} - 133px))`
+              : 'min(400px, 60vh)',
             // The start sheet never scrolls, and its rated pop burst reaches
             // past this box — 'auto' would grow a scrollable region under the
             // dots. The comp clips the burst at the sheet edge, which the
@@ -358,6 +541,9 @@ export default function Sheet({
           )}
           </motion.div>
           </AnimatePresence>
+          </motion.div>
+          )}
+          </AnimatePresence>
         </motion.div>
         </motion.div>
 
@@ -371,7 +557,7 @@ export default function Sheet({
             initial={false}: when the sheet mounts already footered (the
             bottom-bar flow), the row is simply part of the morph target. */}
         <AnimatePresence initial={false}>
-          {footer && !inlineFooter && (
+          {footer && !inlineFooter && !interstitial && (
             <motion.div
               key="footer"
               // Same scale correction as the content wrapper — during the
@@ -381,13 +567,15 @@ export default function Sheet({
               initial={{ height: 0 }}
               animate={{ height: 'auto' }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.45, ease: [0.65, 0, 0.35, 1] }}
-              style={{ overflow: 'hidden', flexShrink: 0 }}
+              transition={intro ? MORPH : STEP_RESIZE}
+              style={{ overflow: 'hidden', flexShrink: 0, ...fixedCol }}
             >
               <motion.div
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: intro ? 0 : 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: [0, 0.55, 0.45, 1], delay: enterDelay + 0.12 }}
+                transition={intro
+                  ? { duration: 0.14, delay: 0.233, ease: EASE_IN_OUT }
+                  : { duration: 0.5, ease: [0, 0.55, 0.45, 1], delay: enterDelay + 0.12 }}
                 style={{
                   padding: '18px 20px', display: 'flex', justifyContent: 'flex-end',
                   alignItems: 'center', gap: 16,
@@ -400,6 +588,9 @@ export default function Sheet({
           )}
         </AnimatePresence>
       </motion.div>
+      {centered && (
+        <div style={{ flex: '1 1 0', maxHeight: `calc(${CENTER_BASELINE[isWide ? 'wide' : 'narrow']} - ${CENTER_MIN_GAP})` }} />
+      )}
     </motion.div>
   )
 }

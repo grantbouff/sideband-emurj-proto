@@ -2,17 +2,21 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import TriggerFAB from './components/TriggerFAB'
 import BottomBar from './components/BottomBar'
+import Snackbar from './components/Snackbar'
 import Sheet from './components/Sheet'
 import BinaryRating from './components/BinaryRating'
 import AnswerChip from './components/AnswerChip'
 import TextField from './components/TextField'
 import Button from './components/Button'
 import Checkmark from './components/Checkmark'
+import RatedInterstitial from './components/RatedInterstitial'
+import { INTERSTITIAL_HOLD } from './components/interstitialTiming'
 
 /* FlowRunner — interprets a declarative flow config.
  *
  * Shared skeleton: entry → binary rating → positive/negative branch → chips →
- * open text → thank-you. `entry.type` picks TriggerFAB / BottomBar / direct Sheet;
+ * open text → thank-you. `entry.type` picks TriggerFAB / BottomBar / Snackbar /
+ * direct Sheet;
  * step `type` picks the input slot; a `{ branch }` step resolves to its positive
  * or negative array once the binary sentiment is known.
  *
@@ -52,7 +56,7 @@ function resolveSteps(steps, sentiment, inserted) {
 }
 
 export default function FlowRunner({ config }) {
-  const entryType = config.entry.type            // 'fab' | 'bottom-bar' | 'sheet'
+  const entryType = config.entry.type            // 'fab' | 'bottom-bar' | 'snackbar' | 'sheet'
   const entryTheme = config.theming?.fab?.theme || config.theming?.modal?.theme || 'lighter'
   const modalTheme = config.theming?.modal?.theme || 'lighter'
 
@@ -71,6 +75,10 @@ export default function FlowRunner({ config }) {
   const [answers, setAnswers] = useState({})
   // Freeform divert taken from a chips step's `Other` — { after, step }.
   const [insertedStep, setInsertedStep] = useState(null)
+  // Snack bar hand-off: the rated interstitial showing in the sheet, and
+  // whether the bar has finished fading out underneath it.
+  const [interstitial, setInterstitial] = useState(null)   // 'positive' | 'negative'
+  const [entryFaded, setEntryFaded] = useState(false)
 
   const resolvedSteps = useMemo(
     () => resolveSteps(config.steps, sentiment, insertedStep),
@@ -80,7 +88,9 @@ export default function FlowRunner({ config }) {
   const isLast = stepIndex >= resolvedSteps.length - 1
   const progress = (stepIndex + 1) / resolvedSteps.length
 
-  const showEntry = !opened && !dismissed
+  // The snack bar outlives `opened` — it fades out under the interstitial and
+  // reports back when it's gone. Every other entry leaves as the sheet opens.
+  const showEntry = !dismissed && (entryType === 'snackbar' ? !entryFaded : !opened)
   const showSheet = opened && !dismissed && step
 
   const close = () => setDismissed(true)
@@ -102,7 +112,7 @@ export default function FlowRunner({ config }) {
     setTimeout(() => { advancePending.current = false; advance() }, 250)
   }
 
-  // Entry that carries the rating (bottom bar): set sentiment and skip the
+  // Entry that carries the rating (bottom bar, snackbar): set sentiment and skip the
   // leading binary step. Assumes steps[0] is the binary step by convention.
   const openWithRating = (kind) => {
     setSentiment(kind)
@@ -134,6 +144,26 @@ export default function FlowRunner({ config }) {
         ratedTimer={config.entry.ratedTimer ?? 3}
         startDelay={startDelay}
         onRate={setSentiment}
+        onDismiss={close}
+      />
+    )
+  } else if (entryType === 'snackbar') {
+    // The snackbar's thumbs are the binary rating, but unlike the bottom bar
+    // it isn't terminal: rating opens a small rated interstitial straight
+    // away, which then morphs into the sheet's follow-up step.
+    entryNode = (
+      <Snackbar
+        question={config.entry.cta}
+        timer={config.entry.timer || 'background'}
+        dismissTimer={config.entry.dismissTimer ?? 8}
+        entrance={config.entry.entrance || 'expand'}
+        startDelay={startDelay}
+        onRate={(kind) => {
+          openWithRating(kind)
+          setInterstitial(kind)
+          setTimeout(() => setInterstitial(null), INTERSTITIAL_HOLD * 1000)
+        }}
+        onFaded={() => setEntryFaded(true)}
         onDismiss={close}
       />
     )
@@ -292,6 +322,16 @@ export default function FlowRunner({ config }) {
               slotInline={slotInline}
               onClose={close}
               slideIn={entryType === 'sheet'}
+              // Snack bar: centred and pinned 12vh off the bottom, opening on
+              // the rated interstitial (message from the binary step's
+              // configured responses).
+              anchor={entryType === 'snackbar' ? 'center' : 'corner'}
+              interstitial={interstitial && (
+                <RatedInterstitial
+                  kind={interstitial}
+                  message={config.steps[0]?.responses?.[interstitial]}
+                />
+              )}
               // Sheet entry opens narrow on its Start step, then widens to the
               // standard 320 as it morphs into the questions and thank-you.
               startWidth={entryType === 'sheet' ? 300 : 320}
